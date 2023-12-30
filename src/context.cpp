@@ -12,6 +12,24 @@ ContextUPtr Context::Create()
 
 bool Context::Init()
 {
+    float vertices[] = 
+    {
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        0.0f, 0.5f, 0.0f,
+    };
+
+    glGenVertexArrays(1, &m_vertexArrayObject);
+    glBindVertexArray(m_vertexArrayObject);
+
+    // GL Buffer를 생성, ARRAY_BUFFER 용도로 바인딩
+    glGenBuffers(1, &m_vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*, vertices, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3, 0);
+
     ShaderPtr vertShader = Shader::CreateFromFile("./shader/simple.vs", GL_VERTEX_SHADER);
     ShaderPtr fragShader = Shader::CreateFromFile("./shader/simple.fs", GL_FRAGMENT_SHADER);
 
@@ -32,11 +50,6 @@ bool Context::Init()
     // color setting for clearing
     glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
 
-    // create vertex array, and binding
-    uint32_t vao = 0;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
     return true;
 }
 
@@ -45,5 +58,5 @@ void Context::Render()
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(m_program->Get());
-    glDrawArrays(GL_POINTS, 0, 1);
+    glDrawArrays(GL_LINE_STRIP, 0, 3);
 }
