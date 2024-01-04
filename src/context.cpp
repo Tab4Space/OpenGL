@@ -70,14 +70,8 @@ bool Context::Init()
     }
     SPDLOG_INFO("image: {}x{}, {} channels", image->GetWidth(), image->GetHeight(), image->GetChannelCount());
 
-    // texture object(m_texture)를 만들어서 id를 넣고, binding
-    // texture filter, wraping과 관련된 파라미터 설정
-    glGenTextures(1, &m_texture);
-    glBindTexture(GL_TEXTURE_2D, m_texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    // Use texture class
+    m_texture = Texture::CreateFromImage(image.get());
 
     // cpu에 로딩되었을 이미지 데이터를 gpu에 복사
     // gpu에서 이미지를 사용하기 위한 파라미터들을 넣는다
