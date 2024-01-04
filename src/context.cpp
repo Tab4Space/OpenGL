@@ -78,7 +78,7 @@ bool Context::Init()
 
     // cpu에 로딩되었을 이미지 데이터를 gpu에 복사
     // gpu에서 이미지를 사용하기 위한 파라미터들을 넣는다
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image->GetWidth(), image->GetHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, image->GetData());
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image->GetWidth(), image->GetHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, image->GetData());
 
     return true;
 }
