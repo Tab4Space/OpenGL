@@ -99,6 +99,7 @@ bool Context::Init()
     auto scale = glm::scale(glm::mat4(1.0f), glm::vec3(3.0f));
     // 확대 -> 회전 -> 평행이동 순으로 점에 선형 변환 적용
     vec = trans * rot * scale * vec;
+    //  (3, 0, 0) -> (0, 3, 0) -> (1, 4, 0)
     SPDLOG_INFO("transformed vec: [{}, {}, {}]", vec.x, vec.y, vec.z);
 
     return true;
