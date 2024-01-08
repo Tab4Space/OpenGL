@@ -13,6 +13,11 @@ ContextUPtr Context::Create()
 
 void Context::ProcessInput(GLFWwindow* window)
 {
+    if(!m_cameraControl)
+    {
+        return;
+    }
+
     const float cameraSpeed = 0.05f;
     if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
@@ -49,6 +54,59 @@ void Context::Reshape(int width, int height)
     m_width = width;
     m_height = height;
     glViewport(0, 0, m_width, m_height);
+}
+
+void Context::MouseMove(double x, double y)
+{
+    if(!m_cameraControl)
+    {
+        return;
+    }
+
+    auto pos = glm::vec2((float)x, (float)y);
+    auto deltaPos = pos - m_prevMousePos;
+
+    const float cameraRotSpeed = 0.08f;
+    m_cameraYaw -= deltaPos.x * cameraRotSpeed;
+    m_cameraPitch -= deltaPos.y * cameraRotSpeed;
+
+    // 0 ~ 360도 사이로 유지되도록
+    if(m_cameraYaw < 0.0f)
+    {
+        m_cameraYaw += 360.0f;
+    }
+    if(m_cameraYaw > 360.0f)
+    {
+        m_cameraYaw -= 360.0f;
+    }
+
+    // 0 ~ 90도 사이로 유지되도록
+    if(m_cameraPitch > 89.0f)
+    {
+        m_cameraPitch = 89.0f;
+    }
+    if(m_cameraPitch < -89.0f)
+    {
+        m_cameraPitch = -89.0f;
+    }
+
+    m_prevMousePos = pos;
+}
+
+void Context::MouseButton(int button, int action, double x, double y)
+{
+    if(button == GLFW_MOUSE_BUTTON_RIGHT)
+    {
+        if(action == GLFW_PRESS)
+        {
+            m_prevMousePos = glm::vec2((float)x, (float)y);
+            m_cameraControl = true;
+        }
+        else if(action == GLFW_RELEASE)
+        {
+            m_cameraControl = false;
+        }
+    }
 }
 
 bool Context::Init()
@@ -178,6 +236,13 @@ void Context::Render()
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
+
+    m_cameraFront = 
+        glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) * 
+        glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) * 
+        // 동차좌표계를 쓰지만, 마지막에 1을 넣으면 점/0을 넣으면 벡터라는 의미이다. 방향 벡터임을 의미
+        // 0을 넣으면 생기는 효과 > 평행이동이 안 된다
+        glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
 
     auto projection = glm::perspective(glm::radians(45.0f), (float)m_width / (float)m_height, 0.01f, 30.0f);
     auto view = glm::lookAt(m_cameraPos, m_cameraPos+m_cameraFront, m_cameraUp);
