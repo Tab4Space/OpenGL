@@ -148,26 +148,18 @@ void Context::Render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    auto projection = glm::perspective(glm::radians(45.0f), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.01f, 20.0f);
+    auto projection = glm::perspective(glm::radians(45.0f), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.01f, 100.0f);
 
-    // 원점을 바라보는 형태로 카메라 세팅, 파라미터 설정
-    auto cameraPos = glm::vec3(3.0f, 3.0f, 3.0f);
+    // 카메라 파라미터 설정
+    float angle = glfwGetTime()*glm::pi<float>()*0.5f;
+    auto x = sinf(angle)*10.0f;
+    auto z = cosf(angle)*10.0f;
+    auto cameraPos = glm::vec3(x, 0.0f, z);
     auto cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     auto cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-    // 파라미터를 갖고 xyz 구하기
-    auto cameraZ = glm::normalize(cameraPos - cameraTarget);
-    auto cameraX = glm::normalize(glm::cross(cameraUp, cameraZ));
-    auto cameraY = glm::cross(cameraZ, cameraX);
-
-    // inverse matrix 구하기
-    auto cameraMat = glm::mat4(
-        glm::vec4(cameraX, 0.0f),
-        glm::vec4(cameraY, 0.0f),
-        glm::vec4(cameraZ, 0.0f),
-        glm::vec4(cameraPos, 1.0f)
-    );
-    auto view = glm::inverse(cameraMat);
+    // lookAt 함수를 사용해서 계산 과정을 한 번에 수행
+    auto view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
 
     for (size_t i = 0; i<cubePositions.size(); i++)
     {
