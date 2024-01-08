@@ -89,7 +89,14 @@ bool Context::Init()
     glUniform1i(glGetUniformLocation(m_program->Get(), "tex"), 0);
     glUniform1i(glGetUniformLocation(m_program->Get(), "tex2"), 1);
 
-    auto transform = glm::rotate(glm::scale(glm::mat4(1.0f), glm::vec3(0.5f)), glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f));
+    // x축으로 -55도 회전
+    auto model = glm::rotate(glm::mat4(1.0f), glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    // 카메라는 원점으로부터 z축 방향으로 -3만큼 떨어짐
+    auto view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+    // 종횡비 4:3, 세로 화각(FOV) 45도의 원근 투영
+    auto projection = glm::perspective(glm::radians(45.0f), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.01f, 10.0f);
+
+    auto transform = projection * view * model;
     auto transformLoc = glGetUniformLocation(m_program->Get(), "transform");
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
 
