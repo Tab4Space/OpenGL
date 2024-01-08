@@ -89,6 +89,7 @@ int main(int argc, const char** argv)
     while(!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
+        context->ProcessInput(window);
         context->Render();
         glfwSwapBuffers(window);
     }
