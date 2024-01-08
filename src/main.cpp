@@ -8,7 +8,8 @@
 void OnFrameBufferSizeChange(GLFWwindow* window, int width, int height)
 {
     SPDLOG_INFO("framebuffer size changed: ({} x {})", width, height);
-    glViewport(0, 0, width, height);    
+    auto context = reinterpret_cast<Context*>(glfwGetWindowUserPointer(window));    // c++ style type cast
+    context->Reshape(width, height);
 }
 
 void OnKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -27,8 +28,6 @@ void OnKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods)
         glfwSetWindowShouldClose(window, true);
     }
 }
-
-
 
 int main(int argc, const char** argv)
 {
@@ -78,6 +77,7 @@ int main(int argc, const char** argv)
         glfwTerminate();
         return -1;
     }
+    glfwSetWindowUserPointer(window, context.get());
 
     // callback 등록
     OnFrameBufferSizeChange(window, WINDOW_WIDTH, WINDOW_HEIGHT);

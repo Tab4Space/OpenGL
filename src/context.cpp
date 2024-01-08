@@ -44,6 +44,13 @@ void Context::ProcessInput(GLFWwindow* window)
     }
 }
 
+void Context::Reshape(int width, int height)
+{
+    m_width = width;
+    m_height = height;
+    glViewport(0, 0, m_width, m_height);
+}
+
 bool Context::Init()
 {
     float vertices[] = {
@@ -172,7 +179,7 @@ void Context::Render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
-    auto projection = glm::perspective(glm::radians(45.0f), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 0.01f, 30.0f);
+    auto projection = glm::perspective(glm::radians(45.0f), (float)m_width / (float)m_height, 0.01f, 30.0f);
     auto view = glm::lookAt(m_cameraPos, m_cameraPos+m_cameraFront, m_cameraUp);
 
     for (size_t i = 0; i<cubePositions.size(); i++)
