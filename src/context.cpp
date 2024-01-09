@@ -1,5 +1,6 @@
 #include "context.h"
 #include "image.h"
+#include <imgui.h>
 
 ContextUPtr Context::Create()
 {
@@ -220,6 +221,12 @@ bool Context::Init()
 
 void Context::Render()
 {
+    if(ImGui::Begin("my first ImGui window"))
+    {
+        ImGui::Text("This is first text...");
+    }
+    ImGui::End();
+
     // Render 함수는 1/60초 한번씩 실행이 된다
     std::vector<glm::vec3> cubePositions = {
         glm::vec3( 0.0f, 0.0f, 0.0f),
