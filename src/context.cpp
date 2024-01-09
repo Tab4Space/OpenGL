@@ -221,9 +221,25 @@ bool Context::Init()
 
 void Context::Render()
 {
-    if(ImGui::Begin("my first ImGui window"))
+    if(ImGui::Begin("ui window"))
     {
-        ImGui::Text("This is first text...");
+        if(ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor)))
+        {
+            // color가 변경되었을 경우 if 안의 로직이 실행된다
+            glClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
+        }
+        ImGui::Separator();     // ui를 분리해준다
+        ImGui::DragFloat3("camera pos", glm::value_ptr(m_cameraPos), 0.01f);
+        ImGui::DragFloat("camera yaw", &m_cameraYaw, 0.5f, -89.0f, 89.0f);
+        ImGui::DragFloat("camera pitch", &m_cameraPitch, 0.5f, -89.0f, 89.0f);
+        ImGui::Separator();     // ui를 분리해준다
+        
+        if(ImGui::Button("reset camera"))
+        {
+            m_cameraYaw = 0.0f;
+            m_cameraPitch = 0.0f;
+            m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+        }
     }
     ImGui::End();
 

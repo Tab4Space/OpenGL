@@ -31,6 +31,9 @@ private:
     TextureUPtr m_texture;
     TextureUPtr m_texture2;
 
+    // clear color
+    glm::vec4 m_clearColor { glm::vec4(0.1f, 0.2f, 0.3f, 0.0f) };
+
     // camera parameters
     float m_cameraPitch = { 0.0f };
     float m_cameraYaw = { 0.0f };
