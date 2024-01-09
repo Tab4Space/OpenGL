@@ -166,8 +166,8 @@ bool Context::Init()
     // buffer 클래스 사용
     m_indexBuffer = Buffer::CreateWithData(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices, sizeof(uint32_t)*36);
 
-    ShaderPtr vertShader = Shader::CreateFromFile("./shader/texture.vs", GL_VERTEX_SHADER);
-    ShaderPtr fragShader = Shader::CreateFromFile("./shader/texture.fs", GL_FRAGMENT_SHADER);
+    ShaderPtr vertShader = Shader::CreateFromFile("./shader/lighting.vs", GL_VERTEX_SHADER);
+    ShaderPtr fragShader = Shader::CreateFromFile("./shader/lighting.fs", GL_FRAGMENT_SHADER);
 
     if(!vertShader || !fragShader)
     {
@@ -221,6 +221,8 @@ bool Context::Init()
 
 void Context::Render()
 {
+    // Render 함수는 1/60초 한번씩 실행이 된다
+
     if(ImGui::Begin("ui window"))
     {
         if(ImGui::ColorEdit4("clear color", glm::value_ptr(m_clearColor)))
@@ -240,10 +242,21 @@ void Context::Render()
             m_cameraPitch = 0.0f;
             m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
         }
+
+        if(ImGui::CollapsingHeader("light"))        
+        {
+            ImGui::ColorEdit3("light color", glm::value_ptr(m_lightColor));
+            ImGui::ColorEdit3("object color", glm::value_ptr(m_objectColor));
+            ImGui::SliderFloat("ambient strength", &m_ambientStrength, 0.0f, 1.0f);
+        }
     }
     ImGui::End();
 
-    // Render 함수는 1/60초 한번씩 실행이 된다
+    m_program->Use();
+    m_program->SetUniform("lightColor", m_lightColor);
+    m_program->SetUniform("objectColor", m_objectColor);
+    m_program->SetUniform("ambientStrength", m_ambientStrength);
+
     std::vector<glm::vec3> cubePositions = {
         glm::vec3( 0.0f, 0.0f, 0.0f),
         glm::vec3( 2.0f, 5.0f, -15.0f),

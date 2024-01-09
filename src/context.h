@@ -34,6 +34,11 @@ private:
     // clear color
     glm::vec4 m_clearColor { glm::vec4(0.1f, 0.2f, 0.3f, 0.0f) };
 
+    // light parameters
+    glm::vec3 m_lightColor { glm::vec3(1.0f, 1.0f, 1.0f) };
+    glm::vec3 m_objectColor { glm::vec3(1.0f, 0.5f, 0.0f) };
+    float m_ambientStrength { 0.1f };
+
     // camera parameters
     float m_cameraPitch = { 0.0f };
     float m_cameraYaw = { 0.0f };
