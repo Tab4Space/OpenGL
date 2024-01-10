@@ -52,7 +52,7 @@ private:
     struct Material 
     {
         TextureUPtr diffuse;
-        glm::vec3 specular { glm::vec3(0.5f, 0.5f, 0.5f) };
+        TextureUPtr specular;
         float shininess { 32.0f };
     };
     Material m_material;

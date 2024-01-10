@@ -19,7 +19,7 @@ uniform Light light;
 struct Material
 {
     sampler2D diffuse;
-    vec3 specular;
+    sampler2D specular;
     float shininess;            // 표면이 얼마나 반짝거리는지 표현
 };
 uniform Material material;
@@ -38,12 +38,13 @@ void main()
     vec3 diffuse = diff * texColor * light.diffuse;
 
     // specular 계산
+    vec3 specColor = texture2D(material.specular, texCoord).xyz;
     vec3 viewDir = normalize(viewPos - position);
     vec3 reflectDir = reflect(-lightDir, pixelNorm);
     // specular factor
     // specular factor * material의 specular * light의 specular
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 specular = spec * material.specular * light.specular;
+    vec3 specular = spec * specColor * light.specular;
 
     // 최종 Color
     vec3 result = ambient + diffuse+ specular;
