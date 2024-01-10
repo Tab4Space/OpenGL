@@ -24,6 +24,7 @@ private:
     Context() {}
     bool Init();
     ProgramUPtr m_program;
+    ProgramUPtr m_simpleProgram;            // light 위치/박스를 위한 program
 
     VertexLayoutUPtr m_vertexLayout;
     BufferUPtr m_vertexBuffer;
