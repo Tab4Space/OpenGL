@@ -18,8 +18,7 @@ uniform Light light;
 
 struct Material
 {
-    vec3 ambient;
-    vec3 diffuse;
+    sampler2D diffuse;
     vec3 specular;
     float shininess;            // 표면이 얼마나 반짝거리는지 표현
 };
@@ -27,16 +26,16 @@ uniform Material material;
 
 void main()
 {
-    // ambient 계산
-    // 재질 자체가 얼마나 빛나는가 * light의 ambient
-    vec3 ambient = material.ambient * light.ambient;
+    // 텍스처를 사용한 ambient
+    vec3 texColor = texture2D(material.diffuse, texCoord).xyz;
+    vec3 ambient = texColor * light.ambient;
 
     // diffuse 계산
     vec3 lightDir = normalize(light.position - position);
     vec3 pixelNorm = normalize(normal);
     // diffuse factor * material의 diffuse * light의 diffuse
     float diff = max(dot(pixelNorm, lightDir), 0.0);
-    vec3 diffuse = diff * material.diffuse * light.diffuse;
+    vec3 diffuse = diff * texColor * light.diffuse;
 
     // specular 계산
     vec3 viewDir = normalize(viewPos - position);

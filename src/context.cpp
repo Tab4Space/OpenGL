@@ -200,6 +200,8 @@ bool Context::Init()
     auto image2 = Image::Load("./image/awesomeface.png");
     m_texture2 = Texture::CreateFromImage(image2.get());
 
+    m_material.diffuse = Texture::CreateFromImage(Image::Load("./image/container2.png").get());
+
     // set texture slot
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_texture->Get());
@@ -248,8 +250,6 @@ void Context::Render()
  
         if (ImGui::CollapsingHeader("material", ImGuiTreeNodeFlags_DefaultOpen)) 
         {
-            ImGui::ColorEdit3("m.ambient", glm::value_ptr(m_material.ambient));
-            ImGui::ColorEdit3("m.diffuse", glm::value_ptr(m_material.diffuse));
             ImGui::ColorEdit3("m.specular", glm::value_ptr(m_material.specular));
             ImGui::DragFloat("m.shininess", &m_material.shininess, 1.0f, 1.0f, 256.0f);
         }
@@ -291,12 +291,9 @@ void Context::Render()
         glm::translate(glm::mat4(1.0), m_light.position) *
         glm::scale(glm::mat4(1.0), glm::vec3(0.1f));
 
-    m_program->Use();
-    m_program->SetUniform("lightPos", m_light.position);
-    m_program->SetUniform("light.ambient", m_light.diffuse);
-    m_program->SetUniform("material.ambient", m_light.diffuse);
-    m_program->SetUniform("transform", projection * view * lightModelTransform);
-    m_program->SetUniform("modelTransform", lightModelTransform);
+    m_simpleProgram->Use();
+    m_simpleProgram->SetUniform("color", glm::vec4(m_light.ambient + m_light.diffuse, 1.0f));
+    m_simpleProgram->SetUniform("transform", projection * view * lightModelTransform);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     /* light 위치에 박스를 그림 */
 
@@ -307,10 +304,12 @@ void Context::Render()
     m_program->SetUniform("light.ambient", m_light.ambient);
     m_program->SetUniform("light.diffuse", m_light.diffuse);
     m_program->SetUniform("light.specular", m_light.specular);
-    m_program->SetUniform("material.ambient", m_material.ambient);
-    m_program->SetUniform("material.diffuse", m_material.diffuse);
+    m_program->SetUniform("material.diffuse", 0);
     m_program->SetUniform("material.specular", m_material.specular);
     m_program->SetUniform("material.shininess", m_material.shininess);
+
+    glActiveTexture(GL_TEXTURE0);
+    m_material.diffuse->Bind();
 
     for (size_t i = 0; i<cubePositions.size(); i++)
     {
