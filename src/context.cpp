@@ -285,19 +285,23 @@ void Context::Render()
         // 0을 넣으면 생기는 효과 > 평행이동이 안 된다
         glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
 
+    // 핸드 라이트 효과
+    m_light.position = m_cameraPos;
+    m_light.direction = m_cameraFront;
+
     auto projection = glm::perspective(glm::radians(45.0f), (float)m_width / (float)m_height, 0.01f, 30.0f);
     auto view = glm::lookAt(m_cameraPos, m_cameraPos+m_cameraFront, m_cameraUp);
 
     /* light 위치에 박스를 그림 */
     //빛의 위치와 크기를 위한 선형변환 식, after computing projection and view matrix
-    auto lightModelTransform =
-        glm::translate(glm::mat4(1.0), m_light.position) *
-        glm::scale(glm::mat4(1.0), glm::vec3(0.1f));
+    // auto lightModelTransform =
+    //     glm::translate(glm::mat4(1.0), m_light.position) *
+    //     glm::scale(glm::mat4(1.0), glm::vec3(0.1f));
 
-    m_simpleProgram->Use();
-    m_simpleProgram->SetUniform("color", glm::vec4(m_light.ambient + m_light.diffuse, 1.0f));
-    m_simpleProgram->SetUniform("transform", projection * view * lightModelTransform);
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    // m_simpleProgram->Use();
+    // m_simpleProgram->SetUniform("color", glm::vec4(m_light.ambient + m_light.diffuse, 1.0f));
+    // m_simpleProgram->SetUniform("transform", projection * view * lightModelTransform);
+    // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     /* light 위치에 박스를 그림 */
 
     /* 여러 개의 박스를 그림 */
