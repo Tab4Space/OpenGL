@@ -9,7 +9,8 @@ uniform vec3 viewPos;               // 바라보는 눈(카메라)의 위치
 
 struct Light
 {
-    vec3 direction;
+    vec3 position;
+    vec3 attenuation;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -31,8 +32,14 @@ void main()
     vec3 ambient = texColor * light.ambient;
 
     // diffuse 계산
-    // 표면에서 라이트 방향으로 나오는
-    vec3 lightDir = normalize(-light.direction);
+    float dist = length(light.position - position);     // 빛의 위치와 pixel의 3D위치 간의 거리
+    vec3 distPoly = vec3(1.0, dist, dist*dist);         // 1, d, d*d
+    // 내적
+    // distPoly.x * light.attenuation.x +      1 * light.attenuation.x +    1*kc
+    // distPoly.y * light.attenuation.y +      d * light.attenuation.y +    d*kl
+    // distPoly.z * light.attenuation.z        d*d * light.attenuation.z    d*d*kq
+    float attenuation = 1.0 / dot(distPoly, light.attenuation);     // distPoly
+    vec3 lightDir = normalize(light.position - position)/dist;
     vec3 pixelNorm = normalize(normal);
     // diffuse factor * material의 diffuse * light의 diffuse
     float diff = max(dot(pixelNorm, lightDir), 0.0);
@@ -48,6 +55,6 @@ void main()
     vec3 specular = spec * specColor * light.specular;
 
     // 최종 Color
-    vec3 result = ambient + diffuse+ specular;
+    vec3 result = (ambient + diffuse+ specular) * attenuation;
     fragColor = vec4(result, 1.0);
 }
