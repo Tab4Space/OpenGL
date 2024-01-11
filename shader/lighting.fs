@@ -10,6 +10,8 @@ uniform vec3 viewPos;               // 바라보는 눈(카메라)의 위치
 struct Light
 {
     vec3 position;
+    vec3 direction;
+    float cutoff;
     vec3 attenuation;
     vec3 ambient;
     vec3 diffuse;
@@ -34,27 +36,32 @@ void main()
     // diffuse 계산
     float dist = length(light.position - position);     // 빛의 위치와 pixel의 3D위치 간의 거리
     vec3 distPoly = vec3(1.0, dist, dist*dist);         // 1, d, d*d
+
     // 내적
-    // distPoly.x * light.attenuation.x +      1 * light.attenuation.x +    1*kc
-    // distPoly.y * light.attenuation.y +      d * light.attenuation.y +    d*kl
-    // distPoly.z * light.attenuation.z        d*d * light.attenuation.z    d*d*kq
     float attenuation = 1.0 / dot(distPoly, light.attenuation);     // distPoly
-    vec3 lightDir = normalize(light.position - position)/dist;
-    vec3 pixelNorm = normalize(normal);
-    // diffuse factor * material의 diffuse * light의 diffuse
-    float diff = max(dot(pixelNorm, lightDir), 0.0);
-    vec3 diffuse = diff * texColor * light.diffuse;
+    vec3 lightDir = (light.position - position)/dist;               // 23.Lecture - implements point light에서 normalize 제거해야함
 
-    // specular 계산
-    vec3 specColor = texture2D(material.specular, texCoord).xyz;
-    vec3 viewDir = normalize(viewPos - position);
-    vec3 reflectDir = reflect(-lightDir, pixelNorm);
-    // specular factor
-    // specular factor * material의 specular * light의 specular
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 specular = spec * specColor * light.specular;
+    // 두 벡터가 이루고 있는 내적 값(cos값) 계산
+    float theta = dot(lightDir, normalize(-light.direction));
+    vec3 result = ambient;
 
-    // 최종 Color
-    vec3 result = (ambient + diffuse+ specular) * attenuation;
+    // theta 이내의 light에 영향을 받는 것만 그린다
+    if(theta > light.cutoff)
+    {
+        vec3 pixelNorm = normalize(normal);
+        float diff = max(dot(pixelNorm, lightDir), 0.0);
+        vec3 diffuse = diff * texColor * light.diffuse;
+
+        vec3 specColor = texture2D(material.specular, texCoord).xyz;
+        vec3 viewDir = normalize(viewPos - position);
+        vec3 reflectDir = reflect(-lightDir, pixelNorm);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+        vec3 specular = spec * specColor * light.specular;
+
+        result += diffuse + specular;
+    }
+
+    result *= attenuation;
+    
     fragColor = vec4(result, 1.0);
 }
