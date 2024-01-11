@@ -9,7 +9,7 @@ uniform vec3 viewPos;               // 바라보는 눈(카메라)의 위치
 
 struct Light
 {
-    vec3 position;
+    vec3 direction;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -31,7 +31,8 @@ void main()
     vec3 ambient = texColor * light.ambient;
 
     // diffuse 계산
-    vec3 lightDir = normalize(light.position - position);
+    // 표면에서 라이트 방향으로 나오는
+    vec3 lightDir = normalize(-light.direction);
     vec3 pixelNorm = normalize(normal);
     // diffuse factor * material의 diffuse * light의 diffuse
     float diff = max(dot(pixelNorm, lightDir), 0.0);
