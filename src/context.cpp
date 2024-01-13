@@ -288,6 +288,9 @@ void Context::Render()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
     m_textureProgram->Use();
     m_windowTexture->Bind();
     m_textureProgram->SetUniform("tex", 0);
