@@ -10,7 +10,7 @@ ModelUPtr Model::Load(const std::string& filename)
     return std::move(model);
 }
 
-void Model::Draw()
+void Model::Draw() const
 {
     for(auto& mesh : m_meshes)
     {
@@ -20,10 +20,10 @@ void Model::Draw()
 
 bool Model::LoadByAssimp(const std::string& filename)
 {
-    Assimp::Impoter importer;
+    Assimp::Importer importer;
     auto scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs);
 
-    if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCIMPLETE || !scene->mRootNode)
+    if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
         SPDLOG_ERROR("failed to load model: {}", filename);
         return false;
@@ -44,7 +44,7 @@ void Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
     {
         auto& v = vertices[i];
         v.position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);   // vertex 세팅
-        v.normal = glm::vec3(mesh->mNormals[i].x, mNormals[i].y, mNormals[i].z);                    // normal 세팅
+        v.normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);                    // normal 세팅
         v.texCoord = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);         // texture 세팅
     }
 

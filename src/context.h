@@ -8,6 +8,7 @@
 #include "vertex_layout.h"
 #include "texture.h"
 #include "mesh.h"
+#include "model.h"
 
 
 CLASS_PTR(Context)
@@ -28,6 +29,7 @@ private:
     ProgramUPtr m_simpleProgram;            // light 위치/박스를 위한 program
 
     MeshUPtr m_box;
+    ModelUPtr m_model;
     TextureUPtr m_texture;
     TextureUPtr m_texture2;
 
