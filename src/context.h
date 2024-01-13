@@ -27,10 +27,11 @@ private:
     bool Init();
     ProgramUPtr m_program;
     ProgramUPtr m_simpleProgram;            // light 위치/박스를 위한 program
+    ProgramUPtr m_textureProgram;           // texture program
 
     MeshUPtr m_box;
-    TextureUPtr m_texture;
-    TextureUPtr m_texture2;
+    MeshUPtr m_plane;
+
 
     // animation
     bool m_animation { true };
@@ -55,6 +56,7 @@ private:
     MaterialPtr m_planeMaterial;
     MaterialPtr m_box1Material;
     MaterialPtr m_box2Material;
+    TexturePtr m_windowTexture;
 
     // camera parameters
     float m_cameraPitch = { -20.0f };
