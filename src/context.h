@@ -29,7 +29,6 @@ private:
     ProgramUPtr m_simpleProgram;            // light 위치/박스를 위한 program
 
     MeshUPtr m_box;
-    ModelUPtr m_model;
     TextureUPtr m_texture;
     TextureUPtr m_texture2;
 
@@ -53,14 +52,9 @@ private:
     Light m_light;
     bool m_flashLightMode { false };
 
-    // material parameter
-    struct Material 
-    {
-        TextureUPtr diffuse;
-        TextureUPtr specular;
-        float shininess { 32.0f };
-    };
-    Material m_material;
+    MaterialPtr m_planeMaterial;
+    MaterialPtr m_box1Material;
+    MaterialPtr m_box2Material;
 
     // camera parameters
     float m_cameraPitch = { 0.0f };
