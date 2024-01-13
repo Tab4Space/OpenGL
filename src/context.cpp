@@ -189,8 +189,8 @@ void Context::Render()
         if(ImGui::Button("reset camera"))
         {
             m_cameraYaw = 0.0f;
-            m_cameraPitch = 0.0f;
-            m_cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+            m_cameraPitch = -20.0f;
+            m_cameraPos = glm::vec3(0.0f, 2.5f, 8.0f);
         }
 
         if (ImGui::CollapsingHeader("light", ImGuiTreeNodeFlags_DefaultOpen)) 
@@ -248,6 +248,7 @@ void Context::Render()
         /* light 위치에 박스를 그림 */
     }
 
+    /* spot light */
     m_program->Use();
     m_program->SetUniform("viewPos", m_cameraPos);
     m_program->SetUniform("light.position", lightPos);
@@ -260,4 +261,35 @@ void Context::Render()
     m_program->SetUniform("light.ambient", m_light.ambient);
     m_program->SetUniform("light.diffuse", m_light.diffuse);
     m_program->SetUniform("light.specular", m_light.specular);
+    /* spot light end*/
+
+    /* plane */
+    auto modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.5f, 0.0f)) * 
+        glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 1.0f, 10.0f));
+    auto transform = projection * view * modelTransform;
+    m_program->SetUniform("transform", transform);
+    m_program->SetUniform("modelTransform", modelTransform);
+    m_planeMaterial->SetToProgram(m_program.get());
+    m_box->Draw(m_program.get());
+
+    /* box1 */
+    modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 0.75f, -4.0f)) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * 
+        glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
+    transform = projection * view * modelTransform;
+    m_program->SetUniform("transform", transform);
+    m_program->SetUniform("modelTransform", modelTransform);
+    m_box1Material->SetToProgram(m_program.get());
+    m_box->Draw(m_program.get());
+
+    /* box2 */
+    modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.75f, 2.0f)) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(20.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * 
+        glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
+    transform = projection * view * modelTransform;
+    m_program->SetUniform("transform", transform);
+    m_program->SetUniform("modelTransform", modelTransform);
+    m_box2Material->SetToProgram(m_program.get());
+    m_box->Draw(m_program.get());
+    
 }
