@@ -296,5 +296,15 @@ void Context::Render()
     transform = projection * view * modelTransform;
     m_textureProgram->SetUniform("transform", transform);
     m_plane->Draw(m_textureProgram.get());
+
+    modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.2f, 0.5f, 5.0f));
+    transform = projection * view * modelTransform;
+    m_textureProgram->SetUniform("transform", transform);
+    m_plane->Draw(m_textureProgram.get());
+
+    modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.4f, 0.5f, 6.0f));
+    transform = projection * view * modelTransform;
+    m_textureProgram->SetUniform("transform", transform);
+    m_plane->Draw(m_textureProgram.get());
     /* blend test end */
 }
