@@ -223,7 +223,7 @@ void Context::Render()
     // m_light.position = m_cameraPos;
     // m_light.direction = m_cameraFront;
 
-    auto projection = glm::perspective(glm::radians(45.0f), (float)m_width / (float)m_height, 0.01f, 30.0f);
+    auto projection = glm::perspective(glm::radians(45.0f), (float)m_width / (float)m_height, 0.1f, 30.0f);
     auto view = glm::lookAt(m_cameraPos, m_cameraPos+m_cameraFront, m_cameraUp);
 
     glm::vec3 lightPos = m_light.position;
@@ -283,7 +283,7 @@ void Context::Render()
     m_box->Draw(m_program.get());
 
     /* box2 */
-    modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.75f, 2.0f)) *
+    modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.7f, 2.0f)) *
         glm::rotate(glm::mat4(1.0f), glm::radians(20.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * 
         glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
     transform = projection * view * modelTransform;
