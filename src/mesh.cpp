@@ -1,5 +1,31 @@
 #include "mesh.h"
 
+
+void Material::SetToProgram(const Program* program) const
+{
+    int textureCount = 0;
+    if(diffuse)
+    {
+        // diffuse가 있으면 0번 슬롯부터 사용해서 diffuse 세팅
+        glActiveTexture(GL_TEXTURE0+textureCount);
+        program->SetUniform("material.diffuse", textureCount);
+        diffuse->Bind();
+        textureCount++;
+    }
+
+    if(specular)
+    {
+        // specular가 있으면 0번+textureCount 슬롯부터 사용해서 diffuse 세팅
+        glActiveTexture(GL_TEXTURE0+textureCount);
+        program->SetUniform("material.specular", textureCount);
+        specular->Bind();
+        textureCount++;
+    }
+
+    glActiveTexture(GL_TEXTURE0);
+    program->SetUniform("material.shininess", shininess);
+}
+
 MeshUPtr Mesh::Create(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, uint32_t primitiveType)
 {
     auto mesh = MeshUPtr(new Mesh());
@@ -53,10 +79,14 @@ MeshUPtr Mesh::CreateBox()
     return Create(vertices, indices, GL_TRIANGLES);
 }
 
-void Mesh::Draw() const
+void Mesh::Draw(const Program* program) const
 {
     // 실제로 그림을 그리는 코드
     m_vertexLayout->Bind();         // VAO 바인딩
+    if(m_material)
+    {
+        m_material->SetToProgram(program);
+    }
     glDrawElements(m_primitiveType, m_indexBuffer->GetCount(), GL_UNSIGNED_INT, 0);     // 
 }
 
