@@ -4,20 +4,20 @@
 #include "texture.h"
 
 
-CLASS_PTR(FrameBuffer);
-class FrameBuffer
+CLASS_PTR(Framebuffer);
+class Framebuffer
 {
 public:
-    static FrameBufferUPtr Create(const TexturePtr colorAttachment);
+    static FramebufferUPtr Create(const TexturePtr colorAttachment);
     static void BindToDefault();
-    ~FrameBuffer();
+    ~Framebuffer();
 
     const uint32_t Get() const { return m_framebuffer; }
     void Bind() const;
     const TexturePtr GetColorAttachment() const { return m_colorAttachment; }
 
 private:
-    FrameBuffer() {}
+    Framebuffer() {}
     bool InitWithColorAttachment(const TexturePtr colorAttachment);
 
     uint32_t m_framebuffer { 0 };

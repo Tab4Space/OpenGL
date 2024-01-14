@@ -1,9 +1,9 @@
 #include "framebuffer.h"
 
 
-FrameBufferUPtr FrameBuffer::Create(const TexturePtr colorAttachment)
+FramebufferUPtr Framebuffer::Create(const TexturePtr colorAttachment)
 {
-    auto framebuffer = FrameBufferUPtr(new FrameBuffer());
+    auto framebuffer = FramebufferUPtr(new Framebuffer());
     if(!framebuffer->InitWithColorAttachment(colorAttachment))
     {
         return nullptr;
@@ -11,7 +11,7 @@ FrameBufferUPtr FrameBuffer::Create(const TexturePtr colorAttachment)
     return std::move(framebuffer);
 }
 
-FrameBuffer::~FrameBuffer()
+Framebuffer::~Framebuffer()
 {
     if(m_depthStencilBuffer)
     {
@@ -23,19 +23,19 @@ FrameBuffer::~FrameBuffer()
     }
 }
 
-void FrameBuffer::BindToDefault()
+void Framebuffer::BindToDefault()
 {
     // 화면에 그림을 그리는 형태로 세팅
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void FrameBuffer::Bind() const
+void Framebuffer::Bind() const
 {
     // frame buffer를 만들고, buffer에 그림을 그리고 싶으면 bind를 한다
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 }
 
-bool FrameBuffer::InitWithColorAttachment(const TexturePtr colorAttachment)
+bool Framebuffer::InitWithColorAttachment(const TexturePtr colorAttachment)
 {
     m_colorAttachment = colorAttachment;                // color buffer로 이용할 텍스처 세팅
     glGenFramebuffers(1, &m_framebuffer);               // frame buffer object 생성

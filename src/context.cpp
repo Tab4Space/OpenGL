@@ -55,6 +55,9 @@ void Context::Reshape(int width, int height)
     m_width = width;
     m_height = height;
     glViewport(0, 0, m_width, m_height);
+
+    // 화면과 동인한 크기의 frame buffer를 생성 > 이후에 buffer에 scene을 렌더링할 것
+    m_framebuffer = Framebuffer::Create(Texture::Create(width, height, GL_RGBA));
 }
 
 void Context::MouseMove(double x, double y)
@@ -200,6 +203,9 @@ void Context::Render()
     }
     ImGui::End();
 
+    // 아래에 나오는 그림을 그리는 코드들이 우리가 만든 프레임 버퍼에 그림을 그린다
+    m_framebuffer->Bind();
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 
@@ -310,4 +316,16 @@ void Context::Render()
     m_textureProgram->SetUniform("transform", transform);
     m_plane->Draw(m_textureProgram.get());
     /* blend test end */
+
+    // 디폴트 화면으로 그림이 그려질 대상을 변경
+    Framebuffer::BindToDefault();
+    // 디폴트 화면도 clear
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    // 텍스처 프로그램을 활성화 > frame buffer 안에 있는 텍스처를 바인딩
+    m_textureProgram->Use();
+    m_textureProgram->SetUniform("transform", glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
+    m_framebuffer->GetColorAttachment()->Bind();
+    m_textureProgram->SetUniform("tex", 0);
+    m_plane->Draw(m_textureProgram.get());
 }
