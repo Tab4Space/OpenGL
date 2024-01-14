@@ -200,6 +200,9 @@ void Context::Render()
         }
 
         ImGui::Checkbox("animation", &m_animation);
+
+        float aspecRatio = m_width / m_height;
+        ImGui::Image((ImTextureID)m_framebuffer->GetColorAttachment()->Get(), ImVec2(150 * aspecRatio, 150));
     }
     ImGui::End();
 
@@ -324,7 +327,7 @@ void Context::Render()
 
     // 텍스처 프로그램을 활성화 > frame buffer 안에 있는 텍스처를 바인딩
     m_textureProgram->Use();
-    m_textureProgram->SetUniform("transform", glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
+    m_textureProgram->SetUniform("transform", glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f)));
     m_framebuffer->GetColorAttachment()->Bind();
     m_textureProgram->SetUniform("tex", 0);
     m_plane->Draw(m_textureProgram.get());
