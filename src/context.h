@@ -29,6 +29,7 @@ private:
     ProgramUPtr m_program;
     ProgramUPtr m_simpleProgram;            // light 위치/박스를 위한 program
     ProgramUPtr m_textureProgram;           // texture program
+    ProgramUPtr m_postProgram;              // post processing program
 
     MeshUPtr m_box;
     MeshUPtr m_plane;

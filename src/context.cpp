@@ -135,6 +135,12 @@ bool Context::Init()
         return false;
     }
 
+    m_postProgram = Program::Create("./shader/texture.vs", "./shader/invert.fs");
+    if(!m_postProgram)
+    {
+        return false;
+    }
+
     // color setting for clearing
     glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
 
@@ -326,9 +332,9 @@ void Context::Render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     // 텍스처 프로그램을 활성화 > frame buffer 안에 있는 텍스처를 바인딩
-    m_textureProgram->Use();
-    m_textureProgram->SetUniform("transform", glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f)));
+    m_postProgram->Use();
+    m_postProgram->SetUniform("transform", glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f)));
     m_framebuffer->GetColorAttachment()->Bind();
-    m_textureProgram->SetUniform("tex", 0);
-    m_plane->Draw(m_textureProgram.get());
+    m_postProgram->SetUniform("tex", 0);
+    m_plane->Draw(m_postProgram.get());
 }
