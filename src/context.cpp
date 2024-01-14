@@ -135,7 +135,7 @@ bool Context::Init()
         return false;
     }
 
-    m_postProgram = Program::Create("./shader/texture.vs", "./shader/invert.fs");
+    m_postProgram = Program::Create("./shader/texture.vs", "./shader/gamma.fs");
     if(!m_postProgram)
     {
         return false;
@@ -180,6 +180,7 @@ void Context::Render()
             // color가 변경되었을 경우 if 안의 로직이 실행된다
             glClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
         }
+        ImGui::DragFloat("gamma", &m_gamma, 0.01, 0.0f, 2.0f);
         ImGui::Separator();     // ui를 분리해준다
         ImGui::DragFloat3("camera pos", glm::value_ptr(m_cameraPos), 0.01f);
         ImGui::DragFloat("camera yaw", &m_cameraYaw, 0.5f, -89.0f, 89.0f);
@@ -336,5 +337,6 @@ void Context::Render()
     m_postProgram->SetUniform("transform", glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f)));
     m_framebuffer->GetColorAttachment()->Bind();
     m_postProgram->SetUniform("tex", 0);
+    m_postProgram->SetUniform("gamma", m_gamma);
     m_plane->Draw(m_postProgram.get());
 }
