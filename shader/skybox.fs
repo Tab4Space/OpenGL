@@ -5,7 +5,7 @@ in vec3 texCoord;
 
 uniform samplerCube skybox;
 
-void main()
+void main() 
 {
     fragColor = texture(skybox, texCoord);
 }

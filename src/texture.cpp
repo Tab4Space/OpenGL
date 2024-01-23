@@ -102,7 +102,7 @@ CubeTextureUPtr CubeTexture::CreateFromImages(const std::vector<Image*>& images)
 
 CubeTexture::~CubeTexture()
 {
-    if(m_texture)
+    if (m_texture) 
     {
         glDeleteTextures(1, &m_texture);
     }

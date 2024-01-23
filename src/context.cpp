@@ -166,6 +166,25 @@ bool Context::Init()
     m_plane = Mesh::CreatePlane();
     m_windowTexture = Texture::CreateFromImage(Image::Load("./image/blending_transparent_window.png").get());
 
+    // 이미지 로딩
+    auto cubeRight = Image::Load("./image/skybox/right.jpg", false);
+    auto cubeLeft = Image::Load("./image/skybox/left.jpg", false);
+    auto cubeTop = Image::Load("./image/skybox/top.jpg", false);
+    auto cubeBottom = Image::Load("./image/skybox/bottom.jpg", false);
+    auto cubeFront = Image::Load("./image/skybox/front.jpg", false);
+    auto cubeBack = Image::Load("./image/skybox/back.jpg", false);
+
+    m_cubeTexture = CubeTexture::CreateFromImages({
+        cubeRight.get(),
+        cubeLeft.get(),
+        cubeTop.get(),
+        cubeBottom.get(),
+        cubeFront.get(),
+        cubeBack.get(),
+    });
+
+    m_skyboxProgram = Program::Create("./shader/skybox.vs", "./shader/skybox.fs");
+
     return true;
 }
 
@@ -230,8 +249,16 @@ void Context::Render()
     // m_light.position = m_cameraPos;
     // m_light.direction = m_cameraFront;
 
-    auto projection = glm::perspective(glm::radians(45.0f), (float)m_width / (float)m_height, 0.1f, 30.0f);
+    auto projection = glm::perspective(glm::radians(45.0f), (float)m_width / (float)m_height, 0.1f, 100.0f);
     auto view = glm::lookAt(m_cameraPos, m_cameraPos+m_cameraFront, m_cameraUp);
+
+    // skybox 그리기
+    auto skyboxModelTransform = glm::translate(glm::mat4(1.0), m_cameraPos) * glm::scale(glm::mat4(1.0), glm::vec3(50.0f));
+    m_skyboxProgram->Use();
+    m_cubeTexture->Bind();
+    m_skyboxProgram->SetUniform("skybox", 0);
+    m_skyboxProgram->SetUniform("transform", projection * view * skyboxModelTransform);
+    m_box->Draw(m_skyboxProgram.get());
 
     glm::vec3 lightPos = m_light.position;
     glm::vec3 lightDir = m_light.direction;
@@ -304,8 +331,9 @@ void Context::Render()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
+    // 29번 강의를 위해 주석처리
+    //glEnable(GL_CULL_FACE);
+    //glCullFace(GL_BACK);
 
     m_textureProgram->Use();
     m_windowTexture->Bind();
