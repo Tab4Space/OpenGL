@@ -33,4 +33,20 @@ private:
     uint32_t m_format { GL_RGBA };
 };
 
+CLASS_PTR(CubeTexture)
+class CubeTexture
+{
+public:
+    static CubeTextureUPtr CreateFromImages(const std::vector<Image*>& images);
+    ~CubeTexture();
+
+    const uint32_t Get() const { return m_texture; }
+    void Bind() const;
+
+private:
+    CubeTexture() {}
+    bool InitFromImages(const std::vector<Image*>& images);
+    uint32_t m_texture { 0 };
+};
+
 #endif
