@@ -1,6 +1,6 @@
 #version 330 core
 
-out vec fragColor;
+out vec4 fragColor;
 
 in vec3 normal;
 in vec3 position;
