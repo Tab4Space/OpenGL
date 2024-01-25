@@ -198,6 +198,28 @@ bool Context::Init()
         m_grassPos[i].y = glm::radians((float)rand() / (float)RAND_MAX * 360.0f);       // 회전까지
     }
 
+    /* instancing
+    grassInstance는 VAO이고 이미 만들어져있던 plane 메쉬에서 사용하던 vertex buffer와 index buffer를 재활용
+    재활용 + 새로 만든 grassPos 값을 담은 array buffer를 attribute 3번으로 세팅하고 instance 별로 값이 들어오도록 세팅
+    */
+
+    // VAO 만들고 plane 오브젝트에 바인딩 -> 0(position), 1(normal), 2(texture) attribute 세팅
+    m_grassInstance = VertexLayout::Create();
+    m_grassInstance->Bind();
+    m_plane->GetVertexBuffer()->Bind();
+    m_grassInstance->SetAttrib(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+    m_grassInstance->SetAttrib(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, normal));
+    m_grassInstance->SetAttrib(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), offsetof(Vertex, texCoord));
+
+    // buffer를 새로 생성 -> m_grassInstance의 vertex layout에 바인딩 -> 3번 attribute에 세팅
+    // glVertexAttribDivisor(3, 1): 3번 attribute는 instance가 바뀔때마다 값이 바뀌도록 한다
+    // grassInstance는 plane에 있는 IndexBuffer를 사용하기 위해 바인딩
+    m_grassPosBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, m_grassPos.data(), sizeof(glm::vec3), m_grassPos.size());
+    m_grassPosBuffer->Bind();
+    m_grassInstance->SetAttrib(3, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
+    glVertexAttribDivisor(3, 1);
+    m_plane->GetIndexBuffer()->Bind();
+
     return true;
 }
 
@@ -384,19 +406,18 @@ void Context::Render()
 
     glEnable(GL_BLEND);
     glDisable(GL_CULL_FACE);
+
     m_grassProgram->Use();
     m_grassProgram->SetUniform("tex", 0);
     m_grassTexture->Bind();
-    for(size_t i=0; i<m_grassPos.size(); i++)
-    {
-        modelTransform = 
-            glm::translate(glm::mat4(1.0f), glm::vec3(m_grassPos[i].x, 0.5f, m_grassPos[i].z)) *
-            glm::rotate(glm::mat4(1.0f), m_grassPos[i].y, glm::vec3(0.0f, 1.0f, 0.0f));
-        transform = projection * view * modelTransform;
-        m_grassProgram->SetUniform("transform", transform);
-        m_plane->Draw(m_grassProgram.get());
-    }
-
+    // 그림을 그리기 전에 VAO인 m_grassInstance를 바인딩 -> transform 구하기 -> glDrawElementsInstanced 호출
+    m_grassInstance->Bind();
+    modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.5f, 0.0f));
+    transform = projection * view * modelTransform;
+    m_grassProgram->SetUniform("transform", transform);
+    // 렉이 걸렸던 첫 번째 방법(10만개 테스트)과 다르게 렉이 안 걸린다
+    glDrawElementsInstanced(GL_TRIANGLES, m_plane->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0, m_grassPosBuffer->GetCount());
+    
     // 디폴트 화면으로 그림이 그려질 대상을 변경
     Framebuffer::BindToDefault();
     // 디폴트 화면도 clear
