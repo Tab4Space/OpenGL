@@ -115,6 +115,7 @@ void Context::MouseButton(int button, int action, double x, double y)
 
 bool Context::Init()
 {
+    glEnable(GL_MULTISAMPLE);
     m_box = Mesh::CreateBox();
 
     // shader 로딩 후 programe으로 만들기
@@ -268,7 +269,7 @@ void Context::Render()
     ImGui::End();
 
     // 아래에 나오는 그림을 그리는 코드들이 우리가 만든 프레임 버퍼에 그림을 그린다
-    m_framebuffer->Bind();
+    // m_framebuffer->Bind();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
@@ -419,15 +420,15 @@ void Context::Render()
     glDrawElementsInstanced(GL_TRIANGLES, m_plane->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0, m_grassPosBuffer->GetCount());
     
     // 디폴트 화면으로 그림이 그려질 대상을 변경
-    Framebuffer::BindToDefault();
-    // 디폴트 화면도 clear
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    // Framebuffer::BindToDefault();
+    // // 디폴트 화면도 clear
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    // 텍스처 프로그램을 활성화 > frame buffer 안에 있는 텍스처를 바인딩
-    m_postProgram->Use();
-    m_postProgram->SetUniform("transform", glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f)));
-    m_framebuffer->GetColorAttachment()->Bind();
-    m_postProgram->SetUniform("tex", 0);
-    m_postProgram->SetUniform("gamma", m_gamma);
-    m_plane->Draw(m_postProgram.get());
+    // // 텍스처 프로그램을 활성화 > frame buffer 안에 있는 텍스처를 바인딩
+    // m_postProgram->Use();
+    // m_postProgram->SetUniform("transform", glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f)));
+    // m_framebuffer->GetColorAttachment()->Bind();
+    // m_postProgram->SetUniform("tex", 0);
+    // m_postProgram->SetUniform("gamma", m_gamma);
+    // m_plane->Draw(m_postProgram.get());
 }
