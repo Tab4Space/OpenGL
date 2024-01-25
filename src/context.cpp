@@ -183,8 +183,20 @@ bool Context::Init()
         cubeBack.get(),
     });
 
+    // skybox, env shader
     m_skyboxProgram = Program::Create("./shader/skybox.vs", "./shader/skybox.fs");
     m_envMapProgram = Program::Create("./shader/env_map.vs", "./shader/env_map.fs");
+
+    // grass shader
+    m_grassTexture = Texture::CreateFromImage(Image::Load("./image/grass.png").get());
+    m_grassProgram = Program::Create("./shader/grass.vs", "./shader/grass.fs");
+    m_grassPos.resize(100000);      // 테스트를 위해 10만개로
+    for(size_t i = 0; i < m_grassPos.size(); i++) 
+    {
+        m_grassPos[i].x = ((float)rand() / (float)RAND_MAX * 2.0f - 1.0f) * 5.0f;
+        m_grassPos[i].z = ((float)rand() / (float)RAND_MAX * 2.0f - 1.0f) * 5.0f;
+        m_grassPos[i].y = glm::radians((float)rand() / (float)RAND_MAX * 360.0f);       // 회전까지
+    }
 
     return true;
 }
@@ -369,6 +381,21 @@ void Context::Render()
     m_textureProgram->SetUniform("transform", transform);
     m_plane->Draw(m_textureProgram.get());
     /* blend test end */
+
+    glEnable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
+    m_grassProgram->Use();
+    m_grassProgram->SetUniform("tex", 0);
+    m_grassTexture->Bind();
+    for(size_t i=0; i<m_grassPos.size(); i++)
+    {
+        modelTransform = 
+            glm::translate(glm::mat4(1.0f), glm::vec3(m_grassPos[i].x, 0.5f, m_grassPos[i].z)) *
+            glm::rotate(glm::mat4(1.0f), m_grassPos[i].y, glm::vec3(0.0f, 1.0f, 0.0f));
+        transform = projection * view * modelTransform;
+        m_grassProgram->SetUniform("transform", transform);
+        m_plane->Draw(m_grassProgram.get());
+    }
 
     // 디폴트 화면으로 그림이 그려질 대상을 변경
     Framebuffer::BindToDefault();
