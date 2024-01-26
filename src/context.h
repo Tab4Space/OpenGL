@@ -56,6 +56,7 @@ private:
     };
     Light m_light;
     bool m_flashLightMode { false };
+    bool m_blinn { false };
 
     MaterialPtr m_planeMaterial;
     MaterialPtr m_box1Material;

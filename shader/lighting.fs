@@ -67,7 +67,7 @@ void main()
         {
             // blinn-phong shading
             vec3 viewDir = normalize(viewPos - position);
-            vec3 halfDir = normalize(lightDir +; viewDir);
+            vec3 halfDir = normalize(lightDir + viewDir);
             spec = pow(max(dot(halfDir, pixelNorm), 0.0), material.shininess);
         }
         vec3 specular = spec * specColor * light.specular;

@@ -259,6 +259,7 @@ void Context::Render()
             ImGui::ColorEdit3("l.diffuse", glm::value_ptr(m_light.diffuse));
             ImGui::ColorEdit3("l.specular", glm::value_ptr(m_light.specular));
             ImGui::Checkbox("flash light", &m_flashLightMode);
+            ImGui::Checkbox("l.blinn", &m_blinn);
         }
 
         ImGui::Checkbox("animation", &m_animation);
@@ -331,6 +332,7 @@ void Context::Render()
     m_program->SetUniform("light.ambient", m_light.ambient);
     m_program->SetUniform("light.diffuse", m_light.diffuse);
     m_program->SetUniform("light.specular", m_light.specular);
+    m_program->SetUniform("blinn", (m_blinn ? 1:0));
     /* spot light end*/
 
     /* plane */
