@@ -152,7 +152,7 @@ bool Context::Init()
     m_planeMaterial = Material::Create();
     m_planeMaterial->diffuse = Texture::CreateFromImage(Image::Load("./image/marble.jpg").get());
     m_planeMaterial->specular = grayTexture;
-    m_planeMaterial->shininess = 128.0f;
+    m_planeMaterial->shininess = 4.0f;
 
     m_box1Material = Material::Create();
     m_box1Material->diffuse = Texture::CreateFromImage(Image::Load("./image/container.jpg").get());
@@ -366,60 +366,60 @@ void Context::Render()
     /* box2 */
 
     /* env map box */
-    modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.75f, -2.0f)) *
-        glm::rotate(glm::mat4(1.0f), glm::radians(40.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
-        glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
-    m_envMapProgram->Use();
-    m_envMapProgram->SetUniform("model", modelTransform);
-    m_envMapProgram->SetUniform("view", view);
-    m_envMapProgram->SetUniform("projection", projection);
-    m_envMapProgram->SetUniform("cameraPos", m_cameraPos);
-    m_cubeTexture->Bind();
-    m_envMapProgram->SetUniform("skybox", 0);
-    m_box->Draw(m_envMapProgram.get());
-    /* env map box end */
+    // modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.75f, -2.0f)) *
+    //     glm::rotate(glm::mat4(1.0f), glm::radians(40.0f), glm::vec3(0.0f, 1.0f, 0.0f)) *
+    //     glm::scale(glm::mat4(1.0f), glm::vec3(1.5f, 1.5f, 1.5f));
+    // m_envMapProgram->Use();
+    // m_envMapProgram->SetUniform("model", modelTransform);
+    // m_envMapProgram->SetUniform("view", view);
+    // m_envMapProgram->SetUniform("projection", projection);
+    // m_envMapProgram->SetUniform("cameraPos", m_cameraPos);
+    // m_cubeTexture->Bind();
+    // m_envMapProgram->SetUniform("skybox", 0);
+    // m_box->Draw(m_envMapProgram.get());
+    // /* env map box end */
 
     /* blend test */
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // glEnable(GL_BLEND);
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // 29번 강의를 위해 주석처리
-    //glEnable(GL_CULL_FACE);
-    //glCullFace(GL_BACK);
+    // // 29번 강의를 위해 주석처리
+    // //glEnable(GL_CULL_FACE);
+    // //glCullFace(GL_BACK);
 
-    m_textureProgram->Use();
-    m_windowTexture->Bind();
-    m_textureProgram->SetUniform("tex", 0);
+    // m_textureProgram->Use();
+    // m_windowTexture->Bind();
+    // m_textureProgram->SetUniform("tex", 0);
 
-    modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.5f, 4.0f));
-    transform = projection * view * modelTransform;
-    m_textureProgram->SetUniform("transform", transform);
-    m_plane->Draw(m_textureProgram.get());
+    // modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.5f, 4.0f));
+    // transform = projection * view * modelTransform;
+    // m_textureProgram->SetUniform("transform", transform);
+    // m_plane->Draw(m_textureProgram.get());
 
-    modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.2f, 0.5f, 5.0f));
-    transform = projection * view * modelTransform;
-    m_textureProgram->SetUniform("transform", transform);
-    m_plane->Draw(m_textureProgram.get());
+    // modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.2f, 0.5f, 5.0f));
+    // transform = projection * view * modelTransform;
+    // m_textureProgram->SetUniform("transform", transform);
+    // m_plane->Draw(m_textureProgram.get());
 
-    modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.4f, 0.5f, 6.0f));
-    transform = projection * view * modelTransform;
-    m_textureProgram->SetUniform("transform", transform);
-    m_plane->Draw(m_textureProgram.get());
+    // modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.4f, 0.5f, 6.0f));
+    // transform = projection * view * modelTransform;
+    // m_textureProgram->SetUniform("transform", transform);
+    // m_plane->Draw(m_textureProgram.get());
     /* blend test end */
 
-    glEnable(GL_BLEND);
-    glDisable(GL_CULL_FACE);
+    // glEnable(GL_BLEND);
+    // glDisable(GL_CULL_FACE);
 
-    m_grassProgram->Use();
-    m_grassProgram->SetUniform("tex", 0);
-    m_grassTexture->Bind();
-    // 그림을 그리기 전에 VAO인 m_grassInstance를 바인딩 -> transform 구하기 -> glDrawElementsInstanced 호출
-    m_grassInstance->Bind();
-    modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.5f, 0.0f));
-    transform = projection * view * modelTransform;
-    m_grassProgram->SetUniform("transform", transform);
-    // 렉이 걸렸던 첫 번째 방법(10만개 테스트)과 다르게 렉이 안 걸린다
-    glDrawElementsInstanced(GL_TRIANGLES, m_plane->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0, m_grassPosBuffer->GetCount());
+    // m_grassProgram->Use();
+    // m_grassProgram->SetUniform("tex", 0);
+    // m_grassTexture->Bind();
+    // // 그림을 그리기 전에 VAO인 m_grassInstance를 바인딩 -> transform 구하기 -> glDrawElementsInstanced 호출
+    // m_grassInstance->Bind();
+    // modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.5f, 0.0f));
+    // transform = projection * view * modelTransform;
+    // m_grassProgram->SetUniform("transform", transform);
+    // // 렉이 걸렸던 첫 번째 방법(10만개 테스트)과 다르게 렉이 안 걸린다
+    // glDrawElementsInstanced(GL_TRIANGLES, m_plane->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0, m_grassPosBuffer->GetCount());
     
     // 디폴트 화면으로 그림이 그려질 대상을 변경
     // Framebuffer::BindToDefault();
