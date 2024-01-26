@@ -270,6 +270,8 @@ bool Context::Init()
     glVertexAttribDivisor(3, 1);
     m_plane->GetIndexBuffer()->Bind();
 
+    m_shadowMap = ShadowMap::Create(1024, 1024);
+
     return true;
 }
 

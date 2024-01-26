@@ -10,6 +10,7 @@
 #include "mesh.h"
 #include "model.h"
 #include "framebuffer.h"
+#include "shadow_map.h"
 
 
 CLASS_PTR(Context)
@@ -90,6 +91,9 @@ private:
     // for instancing
     BufferUPtr m_grassPosBuffer;
     VertexLayoutUPtr m_grassInstance;
+
+    // shadow map
+    ShadowMapUPtr m_shadowMap;
 
     int m_width { WINDOW_WIDTH };
     int m_height { WINDOW_HEIGHT };
