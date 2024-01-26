@@ -315,10 +315,33 @@ void Context::Render()
 
         ImGui::Checkbox("animation", &m_animation);
 
-        float aspecRatio = m_width / m_height;
-        ImGui::Image((ImTextureID)m_framebuffer->GetColorAttachment()->Get(), ImVec2(150 * aspecRatio, 150));
+        // float aspecRatio = m_width / m_height;
+        // ImGui::Image((ImTextureID)m_framebuffer->GetColorAttachment()->Get(), ImVec2(150 * aspecRatio, 150));
+
+        // shadow map imgui에 그리기
+        ImGui::Image((ImTextureID)m_shadowMap->GetShadowMap()->Get(), ImVec2(256,256), ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
+
+    /* 다른 것이 그려지기 전에 먼저 shadow map이 그려져야 한다 */
+    // shadow map이 갖고 있는 depth buffer의 depth 값을 렌더링
+    // 여기가 첫 번째 단계
+    auto lightView = glm::lookAt(m_light.position, m_light.position+m_light.direction, glm::vec3(0.0f, 1.0f, 0.0f));
+    auto lightProjection = glm::perspective(glm::radians((m_light.cutoff[0] + m_light.cutoff[1]) * 2.0f), 1.0f, 1.0f, 20.f);
+
+    // frame buffe binding
+    m_shadowMap->Bind();
+    glClear(GL_DEPTH_BUFFER_BIT);
+    // frame buffer의 사이즈대로 세팅
+    glViewport(0, 0, m_shadowMap->GetShadowMap()->GetWidth(), m_shadowMap->GetShadowMap()->GetHeight());
+    m_simpleProgram->Use();
+    m_simpleProgram->SetUniform("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    DrawScene(lightView, lightProjection, m_simpleProgram.get());
+
+    // 원상복구
+    Framebuffer::BindToDefault();
+    glViewport(0, 0, m_width, m_height);
+    /* shadow map end */
 
     // 아래에 나오는 그림을 그리는 코드들이 우리가 만든 프레임 버퍼에 그림을 그린다
     // m_framebuffer->Bind();
