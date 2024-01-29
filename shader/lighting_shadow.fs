@@ -13,6 +13,7 @@ in VS_OUT
 uniform vec3 viewPos;
 struct Light 
 {
+    int directional;
     vec3 position;
     vec3 direction;
     vec2 cutoff;
@@ -54,7 +55,7 @@ float ShadowCalculation(vec4 fragPosLight, vec3 normal, vec3 lightDir)
     // check whether current frag pos is in shadow
     // 비교를 통해 shadow 값 얻음
     // normal과 lightDir 방향이 같으면 1이 나올 것이고 여기에서 1을 빼면 0에 가까워진다
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+    float bias = max(0.02 * (1.0 - dot(normal, lightDir)), 0.001);
     float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
     return shadow;
 }
@@ -64,14 +65,26 @@ void main()
     vec3 texColor = texture2D(material.diffuse, fs_in.texCoord).xyz;
     vec3 ambient = texColor * light.ambient;
 
-    float dist = length(light.position - fs_in.fragPos);
-    vec3 distPoly = vec3(1.0, dist, dist*dist);
-    float attenuation = 1.0 / dot(distPoly, light.attenuation);
-    vec3 lightDir = (light.position - fs_in.fragPos) / dist;
-
     vec3 result = ambient;
-    float theta = dot(lightDir, normalize(-light.direction));
-    float intensity = clamp((theta - light.cutoff[1]) / (light.cutoff[0] - light.cutoff[1]), 0.0, 1.0);
+    vec3 lightDir;
+    float intensity = 1.0;
+    float attenuation = 1.0;
+    if (light.directional == 1) 
+    {
+        // direction light 사용하니까 direction 값만 사용
+        lightDir = normalize(-light.direction);
+    }
+    else 
+    {
+        // direction light가 아니면 attenation, intensity 등 다른 것들 계산
+        float dist = length(light.position - fs_in.fragPos);
+        vec3 distPoly = vec3(1.0, dist, dist*dist);
+        attenuation = 1.0 / dot(distPoly, light.attenuation);
+        lightDir = (light.position - fs_in.fragPos) / dist;
+ 
+        float theta = dot(lightDir, normalize(-light.direction));
+        intensity = clamp((theta - light.cutoff[1]) / (light.cutoff[0] - light.cutoff[1]), 0.0, 1.0);
+    }
 
     if(intensity > 0.0)
     {

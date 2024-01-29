@@ -303,6 +303,7 @@ void Context::Render()
 
         if (ImGui::CollapsingHeader("light", ImGuiTreeNodeFlags_DefaultOpen)) 
         {
+            ImGui::Checkbox("l.directional", &m_light.directional);
             ImGui::DragFloat3("l.position", glm::value_ptr(m_light.position), 0.01f);
             ImGui::DragFloat3("l.direction", glm::value_ptr(m_light.direction), 0.01f);
             ImGui::DragFloat2("l.cutoff", glm::value_ptr(m_light.cutoff), 0.5f, 0.0f, 180.0f);
@@ -328,7 +329,9 @@ void Context::Render()
     // shadow map이 갖고 있는 depth buffer의 depth 값을 렌더링
     // 여기가 첫 번째 단계
     auto lightView = glm::lookAt(m_light.position, m_light.position+m_light.direction, glm::vec3(0.0f, 1.0f, 0.0f));
-    auto lightProjection = glm::perspective(glm::radians((m_light.cutoff[0] + m_light.cutoff[1]) * 2.0f), 1.0f, 1.0f, 20.f);
+    auto lightProjection = m_light.directional ?
+        glm::ortho(-10.f, 10.f, -10.0f, 10.0f, 1.0f, 30.0f) : 
+        glm::perspective(glm::radians((m_light.cutoff[0] + m_light.cutoff[1]) * 2.0f), 1.0f, 1.0f, 2.0f);
 
     // frame buffe binding
     m_shadowMap->Bind();
@@ -398,6 +401,7 @@ void Context::Render()
     // 기존의 light 대체
     m_lightingShadowProgram->Use();
     m_lightingShadowProgram->SetUniform("viewPos", m_cameraPos);
+    m_lightingShadowProgram->SetUniform("light.directional", m_light.directional ? 1 : 0);
     m_lightingShadowProgram->SetUniform("light.position", m_light.position);
     m_lightingShadowProgram->SetUniform("light.direction", m_light.direction);
     m_lightingShadowProgram->SetUniform("light.cutoff", glm::vec2(
