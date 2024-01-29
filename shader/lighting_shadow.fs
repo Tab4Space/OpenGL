@@ -36,7 +36,25 @@ uniform sampler2D shadowMap;        // first pass에서 그렸던 depth map을 �
 
 float ShadowCalculation(vec4 fragPosLight)
 {
-    return 0.0;     // 0 -> 그림자가 없고, 1->그림자가 있고
+    // perform perspective divide
+    // projection matrix를 거치면 w에 1이 아닌 다른 값이 있다 > w값으로 나누면 진짜 값이 나온다 (modeling 첫번째 강의 참고)
+    vec3 projCoords = fragPosLight.xyz / fragPosLight.w;
+    // transform to [0,1] range
+    // * 0.5 + 0.5 이유: projCoords 값의 범위가 canonical coord를 기준으로 transpose진행 
+    // canonical은 -1 ~ +1 범위 > 계산을 거쳐서 0 ~ 1 사이로 맞춰준다
+    projCoords = projCoords * 0.5 + 0.5;
+    // get closest depth value from light’s perspective (using
+    // [0,1] range fragPosLight as coords)
+    // shadow map으로부터 xy를 가지고 좌표 r값(첫 번재 채널)을 가져온다
+    // 빛의 위치에서 가장 가까이 있는 depth 위치이다
+    float closestDepth = texture(shadowMap, projCoords.xy).r;
+    // get depth of current fragment from light’s perspective
+    // 이 위치의 z좌표가 이 픽셀의 depth 값이다
+    float currentDepth = projCoords.z;
+    // check whether current frag pos is in shadow
+    // 비교를 통해 shadow 값 얻음
+    float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
+    return shadow;
 }
 
 void main()
