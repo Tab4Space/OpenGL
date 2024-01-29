@@ -56,7 +56,23 @@ float ShadowCalculation(vec4 fragPosLight, vec3 normal, vec3 lightDir)
     // 비교를 통해 shadow 값 얻음
     // normal과 lightDir 방향이 같으면 1이 나올 것이고 여기에서 1을 빼면 0에 가까워진다
     float bias = max(0.02 * (1.0 - dot(normal, lightDir)), 0.001);
-    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+    
+    // PCF
+    float shadow = 0.0;
+    // 이웃하는 픽셀(9개)에 접근하기 위해
+    // 샘플을 많이 사용할 수록 더 부드러워진다 > 너무 샘플링이 많다면 성능 저하
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    for(int x = -1; x <= 1; ++x) 
+    {
+        for (int y = -1; y <= 1; ++y) 
+        {
+            float pcfDepth = texture(shadowMap,
+            projCoords.xy + vec2(x, y) * texelSize).r;
+            // 누적하면 최대 9 ~ 최소 0
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+        }
+    }
+    shadow /= 9.0;
     return shadow;
 }
 
