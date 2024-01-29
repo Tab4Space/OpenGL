@@ -34,7 +34,7 @@ uniform Material material;
 uniform int blinn;
 uniform sampler2D shadowMap;        // first pass에서 그렸던 depth map을 여기다 넣는다
 
-float ShadowCalculation(vec4 fragPosLight)
+float ShadowCalculation(vec4 fragPosLight, vec3 normal, vec3 lightDir)
 {
     // perform perspective divide
     // projection matrix를 거치면 w에 1이 아닌 다른 값이 있다 > w값으로 나누면 진짜 값이 나온다 (modeling 첫번째 강의 참고)
@@ -53,7 +53,9 @@ float ShadowCalculation(vec4 fragPosLight)
     float currentDepth = projCoords.z;
     // check whether current frag pos is in shadow
     // 비교를 통해 shadow 값 얻음
-    float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
+    // normal과 lightDir 방향이 같으면 1이 나올 것이고 여기에서 1을 빼면 0에 가까워진다
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
     return shadow;
 }
 
@@ -93,7 +95,7 @@ void main()
         }
         
         vec3 specular = spec * specColor * light.specular;
-        float shadow = ShadowCalculation(fs_in.fragPosLight);
+        float shadow = ShadowCalculation(fs_in.fragPosLight, pixelNorm, lightDir);
 
         //shadow 함수 리턴에 따라서 result 가 0 or 1이 된다
         result += (diffuse - specular) * intensity * (1.0 - shadow);
