@@ -60,7 +60,7 @@ float ShadowCalculation(vec4 fragPosLight, vec3 normal, vec3 lightDir)
     // PCF
     float shadow = 0.0;
     // 이웃하는 픽셀(9개)에 접근하기 위해
-    // 샘플을 많이 사용할 수록 더 부드러워진다 > 너무 샘플링이 많다면 성능 저하
+    // 샘플을 많이 사용할 수록 더 부드러워진다 > 너무 샘플링이 많다면 성능 저하발생
     vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
     for(int x = -1; x <= 1; ++x) 
     {
