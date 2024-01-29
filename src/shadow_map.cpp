@@ -32,7 +32,8 @@ bool ShadowMap::Init(int width, int height)
     // GL_DEPTH_COMPONENT: depth map으로 이용하기 때문에
     m_shadowMap = Texture::Create(width, height, GL_DEPTH_COMPONENT, GL_FLOAT);
     m_shadowMap->SetFilter(GL_NEAREST, GL_NEAREST);
-    m_shadowMap->SetWrap(GL_REPEAT, GL_REPEAT);
+    m_shadowMap->SetWrap(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
+    m_shadowMap->SetBorderColor(glm::vec4(1.0f));
 
     // depth attachment: frame buffer에 붙이려는 m_shadowMap 텍스처를 depth 에 붙인다
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_shadowMap->Get(), 0);
