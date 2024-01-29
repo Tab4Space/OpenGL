@@ -11,7 +11,7 @@ in VS_OUT
 } fs_in;
 
 uniform vec3 viewPos;
-struct Light
+struct Light 
 {
     vec3 position;
     vec3 direction;
@@ -23,7 +23,7 @@ struct Light
 };
 uniform Light light;
 
-struct Material
+struct Material 
 {
     sampler2D diffuse;
     sampler2D specular;
@@ -47,27 +47,27 @@ void main()
     float dist = length(light.position - fs_in.fragPos);
     vec3 distPoly = vec3(1.0, dist, dist*dist);
     float attenuation = 1.0 / dot(distPoly, light.attenuation);
-    vec3 lightDir = (light.postion - fs_in.fragPos) / dist;
+    vec3 lightDir = (light.position - fs_in.fragPos) / dist;
 
     vec3 result = ambient;
     float theta = dot(lightDir, normalize(-light.direction));
-    float intensity = clamp((theta-light.cutoff[1]) / (light.cutoff[0]-light.cutoff[1]), 0.0, 1.0);
+    float intensity = clamp((theta - light.cutoff[1]) / (light.cutoff[0] - light.cutoff[1]), 0.0, 1.0);
 
     if(intensity > 0.0)
     {
-        vec3 pixelNorm = normal(fs_in.normal);
+        vec3 pixelNorm = normalize(fs_in.normal);
         float diff = max(dot(pixelNorm, lightDir), 0.0);
         vec3 diffuse = diff * texColor * light.diffuse;
 
         vec3 specColor = texture2D(material.specular, fs_in.texCoord).xyz;
         float spec = 0.0;
-        if(blinn == 0.0)
+        if (blinn == 0) 
         {
             vec3 viewDir = normalize(viewPos - fs_in.fragPos);
             vec3 reflectDir = reflect(-lightDir, pixelNorm);
             spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
         }
-        else
+        else 
         {
             vec3 viewDir = normalize(viewPos - fs_in.fragPos);
             vec3 halfDir = normalize(lightDir + viewDir);
@@ -81,6 +81,6 @@ void main()
         result += (diffuse - specular) * intensity * (1.0 - shadow);
     }
     
-    result += attenuation;
-    fragColor = vec4(result 1.0);
+    result *= attenuation;
+    fragColor = vec4(result, 1.0);
 }

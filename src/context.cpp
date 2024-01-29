@@ -271,6 +271,7 @@ bool Context::Init()
     m_plane->GetIndexBuffer()->Bind();
 
     m_shadowMap = ShadowMap::Create(1024, 1024);
+    m_lightingShadowProgram = Program::Create("./shader/lighting_shadow.vs", "./shader/lighting_shadow.fs");
 
     return true;
 }
@@ -393,24 +394,30 @@ void Context::Render()
         /* light 위치에 박스를 그림 */
     }
 
-    /* spot light */
-    m_program->Use();
-    m_program->SetUniform("viewPos", m_cameraPos);
-    m_program->SetUniform("light.position", lightPos);
-    m_program->SetUniform("light.direction", lightDir);
-    m_program->SetUniform("light.cutoff", glm::vec2(
+    /* shadow map second pass */
+    // 기존의 light 대체
+    m_lightingShadowProgram->Use();
+    m_lightingShadowProgram->SetUniform("viewPos", m_cameraPos);
+    m_lightingShadowProgram->SetUniform("light.position", m_light.position);
+    m_lightingShadowProgram->SetUniform("light.direction", m_light.direction);
+    m_lightingShadowProgram->SetUniform("light.cutoff", glm::vec2(
         cosf(glm::radians(m_light.cutoff[0])),
-        cosf(glm::radians(m_light.cutoff[0]+m_light.cutoff[1]))
-    ));
-    m_program->SetUniform("light.attenuation", GetAttenuationCoeff(m_light.distance));
-    m_program->SetUniform("light.ambient", m_light.ambient);
-    m_program->SetUniform("light.diffuse", m_light.diffuse);
-    m_program->SetUniform("light.specular", m_light.specular);
-    m_program->SetUniform("blinn", (m_blinn ? 1:0));
-    /* spot light end*/
+        cosf(glm::radians(m_light.cutoff[0] + m_light.cutoff[1]))));
+    m_lightingShadowProgram->SetUniform("light.attenuation", GetAttenuationCoeff(m_light.distance));
+    m_lightingShadowProgram->SetUniform("light.ambient", m_light.ambient);
+    m_lightingShadowProgram->SetUniform("light.diffuse", m_light.diffuse);
+    m_lightingShadowProgram->SetUniform("light.specular", m_light.specular);
+    m_lightingShadowProgram->SetUniform("blinn", (m_blinn ? 1 : 0));
+    m_lightingShadowProgram->SetUniform("lightTransform", lightProjection * lightView);
+    // texture 3번 슬롯 활성화
+    glActiveTexture(GL_TEXTURE3);
+    m_shadowMap->GetShadowMap()->Bind();
+    // shadow map에 3번 슬롯 할당
+    m_lightingShadowProgram->SetUniform("shadowMap", 3);
+    glActiveTexture(GL_TEXTURE0);
 
-    DrawScene(view, projection, m_program.get());
-
+    DrawScene(view, projection, m_lightingShadowProgram.get());
+    /* shadow map second pass end */
 
 
     /* env map box */
