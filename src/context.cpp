@@ -273,8 +273,16 @@ bool Context::Init()
     glVertexAttribDivisor(3, 1);
     m_plane->GetIndexBuffer()->Bind();
 
+    /* shadow map */
     m_shadowMap = ShadowMap::Create(1024, 1024);
     m_lightingShadowProgram = Program::Create("./shader/lighting_shadow.vs", "./shader/lighting_shadow.fs");
+    /* shadow map end */
+
+    /* normal map */
+    m_brickDiffuseTexture = Texture::CreateFromImage(Image::Load("./image/brickwall.jpg", false).get());
+    m_brickNormalTexture = Texture::CreateFromImage(Image::Load("./image/brickwall_normal.jpg", false).get());
+    m_normalProgram = Program::Create("./shader/normal.vs", "./shader/normal.fs");
+    /* normal map end */
 
     return true;
 }
@@ -426,6 +434,26 @@ void Context::Render()
     DrawScene(view, projection, m_lightingShadowProgram.get());
     /* shadow map second pass end */
 
+    /* normal map */
+    // 일단 그림자랑 상관없이 그린다
+    auto modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.0f, 0.0f));
+    m_normalProgram->Use();
+    m_normalProgram->SetUniform("viewPos", m_cameraPos);
+    m_normalProgram->SetUniform("lightPos", m_light.position);
+    
+    glActiveTexture(GL_TEXTURE0);
+    m_brickDiffuseTexture->Bind();
+    m_normalProgram->SetUniform("diffuse", 0);
+
+    glActiveTexture(GL_TEXTURE1);
+    m_brickNormalTexture->Bind();
+    m_normalProgram->SetUniform("normalMal", 1);
+
+    glActiveTexture(GL_TEXTURE0);
+    m_normalProgram->SetUniform("modelTransform", modelTransform);
+    m_normalProgram->SetUniform("transform", projection * view * modelTransform);
+    m_plane->Draw(m_normalProgram.get());
+    /* normal map end */
 
     /* env map box */
     // modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.75f, -2.0f)) *
