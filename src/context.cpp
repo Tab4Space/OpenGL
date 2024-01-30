@@ -436,7 +436,8 @@ void Context::Render()
 
     /* normal map */
     // 일단 그림자랑 상관없이 그린다
-    auto modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.0f, 0.0f));
+    auto modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.0f, 0.0f)) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0));
     m_normalProgram->Use();
     m_normalProgram->SetUniform("viewPos", m_cameraPos);
     m_normalProgram->SetUniform("lightPos", m_light.position);

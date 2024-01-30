@@ -35,6 +35,7 @@ MeshUPtr Mesh::Create(const std::vector<Vertex>& vertices, const std::vector<uin
 
 MeshUPtr Mesh::CreateBox()
 {
+    //Vertex(위치, normal 방향, texture coordinate)
     std::vector<Vertex> vertices = {
         Vertex { glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 0.0f) },
         Vertex { glm::vec3( 0.5f, -0.5f, -0.5f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 0.0f) },
@@ -106,8 +107,87 @@ void Mesh::Draw(const Program* program) const
     glDrawElements(m_primitiveType, m_indexBuffer->GetCount(), GL_UNSIGNED_INT, 0);     // 
 }
 
+void Mesh::ComputeTangents(std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
+{
+    // 하나의 삼각형을 이루고 있는 position과 uv를 전달해서 그에 대한 postion1을 기준으로 한 tangent vector를 리턴
+    auto compute = [](const glm::vec3& pos1, const glm::vec3& pos2, const glm::vec3& pos3, 
+        const glm::vec2& uv1, const glm::vec2& uv2, const glm::vec2& uv3)->glm::vec3
+    {
+        auto edge1 = pos2 - pos1;
+        auto edge2 = pos3 - pos1;
+
+        auto deltaUV1 = uv2 - uv1;
+        auto deltaUV2 = uv3 - uv1;
+
+        // 역행렬 구할 때 (ad - bc)부분, 결과가 0이면 역행렬이 없다는 뜻이다
+        float det = (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+
+        if(det != 0.0f)
+        {
+            auto invDet = 1.0f / det;
+            return invDet * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
+        }
+        else
+        {
+            return glm::vec3(0.0f, 0.0f, 0.0f);
+        }
+    };
+
+    // initialize
+    std::vector<glm::vec3> tangents;
+    tangents.resize(vertices.size());
+    memset(tangents.data(), 0, tangents.size()*sizeof(glm::vec3));
+
+    // 모든 vertex에 대해서 tangent 계산
+    for(size_t i=0; i<indices.size(); i+=3)
+    {
+        // 각 vertex의 인덱스
+        auto v1 = indices[i];
+        auto v2 = indices[i+1];
+        auto v3 = indices[i+2];
+
+        // v1의 tangent
+        tangents[v1] += compute(
+            vertices[v1].position, vertices[v2].position, vertices[v3].position,
+            vertices[v1].texCoord, vertices[v2].texCoord, vertices[v3].texCoord
+        );
+
+        // v2의 tangent
+        tangents[v2] = compute(
+            vertices[v2].position, vertices[v3].position, vertices[v1].position,
+            vertices[v2].texCoord, vertices[v3].texCoord, vertices[v1].texCoord
+        );
+
+        // v3의 tangent
+        tangents[v3] = compute(
+            vertices[v3].position, vertices[v1].position, vertices[v2].position,
+            vertices[v3].texCoord, vertices[v1].texCoord, vertices[v2].texCoord
+        );
+
+        // normalize
+        for(size_t i=0; i<vertices.size(); i++)
+        {
+            vertices[i].tangent = glm::normalize(tangents[i]);
+        }
+    }
+}
+
 void Mesh::Init(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, uint32_t primitiveType)
 {
+    /*
+    * vertex layout 초기화 함수
+    */
+   
+    if(primitiveType == GL_TRIANGLES)
+    {
+        // const_cast
+        // Init의 vertices는 const를 사용하는데 ComputeTangents는 const를 사용 안함
+        // 안 붙어있는 쪽의 파라미터를 붙어있는 쪽의 파라미터로 사용하는 것은 가능, 반대는 불가능
+        // 따라서 형변환을 해서 넣어야 하며, 이 때 const_cast를 사용(const를 붙이거나 떼어내거나, 보통은 떼어내서 사용)
+        // 아래에서는 const_cast를 사용해 이 부분에서만 명시적으로 const를 떼고 사용하겠다는 의미
+        ComputeTangents(const_cast<std::vector<Vertex>&>(vertices), indices);
+    }
+
     m_vertexLayout = VertexLayout::Create();
     
     m_vertexBuffer = Buffer::CreateWithData(GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices.data(), sizeof(Vertex), indices.size());
@@ -116,4 +196,5 @@ void Mesh::Init(const std::vector<Vertex>& vertices, const std::vector<uint32_t>
     m_vertexLayout->SetAttrib(0, 3, GL_FLOAT, false, sizeof(Vertex), 0);                                // position
     m_vertexLayout->SetAttrib(1, 3, GL_FLOAT, false, sizeof(Vertex), offsetof(Vertex, normal));         // normal
     m_vertexLayout->SetAttrib(2, 2, GL_FLOAT, false, sizeof(Vertex), offsetof(Vertex, texCoord));       // texture coordination
+    m_vertexLayout->SetAttrib(3, 3, GL_FLOAT, false, sizeof(Vertex), offsetof(Vertex, tangent));        // tangent
 }

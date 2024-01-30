@@ -2,6 +2,8 @@
 
 in vec2 texCoord;
 in vec3 position;
+in vec3 normal;
+in vec3 tangent;
 out vec4 fragColor;
 
 // 빛의 값을 계산하기 위해 view, lightPos 유니폼으로 받음
@@ -20,7 +22,16 @@ void main()
     // normalMap에서 texture로 값을 가져오면 값의 범위가 0~1사이 값이다 > 이걸 -1 ~ 1 사이로 늘려준다
     // normal map은 이미지로 저장되어 있는데, 저장해야하는 normal vector는 normalize 하더라도 -1 ~ 1 사이로 맞춰야 한다
     // unit vector가 아닐수 있기 때문에 normalize()
-    vec3 pixelNorm = normalize(texture(normalMap, texCoord).xyz * 2.0 - 1.0);
+    // vec3 pixelNorm = normalize(texture(normalMap, texCoord).xyz * 2.0 - 1.0);
+
+    // tangent space 
+    vec3 texNorm = texture(normalMap, texCoord).xyz * 2.0 -1.0;     // normal map으로부터 normal 값 얻어옴
+    vec3 N = normalize(normal);                                     // in 으로 들어온 normal 값 normalize, Z축
+    vec3 T = normalize(tangent);                                    // in 으로 들어온 tangent 값 normalize, X축
+    vec3 B = cross(N, T);                                           // N과 T를 가지고 외적을 통해 bi-normal vector 생성, Y축
+    mat3 TBN = mat3(T, B, N);                                       // 좌표계로 만든다
+    vec3 pixelNorm = normalize(TBN * texNorm);                      // 월드 좌표에서의 normal vector의 방향을 구할 수 있다
+
     vec3 ambient = texColor * 0.2;
 
     // diffuse 계산
