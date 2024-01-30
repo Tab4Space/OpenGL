@@ -67,10 +67,10 @@ private:
     TexturePtr m_windowTexture;
 
     // camera parameters
-    float m_cameraPitch = { -20.0f };
-    float m_cameraYaw = { 0.0f };
+    float m_cameraPitch { -20.0f };
+    float m_cameraYaw { 0.0f };
     glm::vec3 m_cameraPos { glm::vec3(0.0f, 2.5f, 8.0f) };          // 원전에서 (0, 0, 3)만큼 떨어져있는
-    glm::vec3 m_cameraFront { glm::vec3(0.0f, 0.0f, -1.0f) };       // -z축을 바라보도록
+    glm::vec3 m_cameraFront { glm::vec3(0.0f, -1.0f, 0.0f) };       // -z축을 바라보도록
     glm::vec3 m_cameraUp { glm::vec3(0.0f, 1.0f, 0.0f) };           // camera의 up vector
 
     bool m_cameraControl { false };

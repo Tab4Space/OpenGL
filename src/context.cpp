@@ -165,7 +165,11 @@ void Context::DrawScene(const glm::mat4& view, const glm::mat4& projection, cons
 bool Context::Init()
 {
     glEnable(GL_MULTISAMPLE);
+    glEnable(GL_DEPTH_TEST);
+    glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
+
     m_box = Mesh::CreateBox();
+    m_plane = Mesh::CreatePlane();
 
     // shader 로딩 후 programe으로 만들기
     m_simpleProgram = Program::Create("./shader/simple.vs", "./shader/simple.fs");
@@ -192,7 +196,7 @@ bool Context::Init()
     }
 
     // color setting for clearing
-    glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
+    // glClearColor(0.1f, 0.2f, 0.3f, 0.0f);
 
     // 단색 texture
     TexturePtr darkGrayTexture = Texture::CreateFromImage(Image::CreateSingleColorImage(4, 4, glm::vec4(0.2f, 0.2f, 0.2f, 1.0f)).get());
@@ -201,7 +205,7 @@ bool Context::Init()
     m_planeMaterial = Material::Create();
     m_planeMaterial->diffuse = Texture::CreateFromImage(Image::Load("./image/marble.jpg").get());
     m_planeMaterial->specular = grayTexture;
-    m_planeMaterial->shininess = 4.0f;
+    m_planeMaterial->shininess = 32.0f;
 
     m_box1Material = Material::Create();
     m_box1Material->diffuse = Texture::CreateFromImage(Image::Load("./image/container.jpg").get());
@@ -213,7 +217,6 @@ bool Context::Init()
     m_box2Material->specular = Texture::CreateFromImage(Image::Load("./image/container2_specular.png").get());
     m_box2Material->shininess = 64.0f;
 
-    m_plane = Mesh::CreatePlane();
     m_windowTexture = Texture::CreateFromImage(Image::Load("./image/blending_transparent_window.png").get());
 
     // 이미지 로딩
@@ -287,10 +290,10 @@ void Context::Render()
             // color가 변경되었을 경우 if 안의 로직이 실행된다
             glClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
         }
-        ImGui::DragFloat("gamma", &m_gamma, 0.01, 0.0f, 2.0f);
+        ImGui::DragFloat("gamma", &m_gamma, 0.01f, 0.0f, 2.0f);
         ImGui::Separator();     // ui를 분리해준다
         ImGui::DragFloat3("camera pos", glm::value_ptr(m_cameraPos), 0.01f);
-        ImGui::DragFloat("camera yaw", &m_cameraYaw, 0.5f, -89.0f, 89.0f);
+        ImGui::DragFloat("camera yaw", &m_cameraYaw, 0.5f);
         ImGui::DragFloat("camera pitch", &m_cameraPitch, 0.5f, -89.0f, 89.0f);
         ImGui::Separator();     // ui를 분리해준다
         
@@ -306,8 +309,8 @@ void Context::Render()
             ImGui::Checkbox("l.directional", &m_light.directional);
             ImGui::DragFloat3("l.position", glm::value_ptr(m_light.position), 0.01f);
             ImGui::DragFloat3("l.direction", glm::value_ptr(m_light.direction), 0.01f);
-            ImGui::DragFloat2("l.cutoff", glm::value_ptr(m_light.cutoff), 0.5f, 0.0f, 180.0f);
-            ImGui::DragFloat("l.distance", &m_light.distance, 0.5f, 0.0f, 3000.0f);
+            ImGui::DragFloat2("l.cutoff", glm::value_ptr(m_light.cutoff), 0.1f, 0.0f, 180.0f);
+            ImGui::DragFloat("l.distance", &m_light.distance, 0.5f, 0.0f, 1000.0f);
             ImGui::ColorEdit3("l.ambient", glm::value_ptr(m_light.ambient));
             ImGui::ColorEdit3("l.diffuse", glm::value_ptr(m_light.diffuse));
             ImGui::ColorEdit3("l.specular", glm::value_ptr(m_light.specular));
@@ -325,13 +328,13 @@ void Context::Render()
     }
     ImGui::End();
 
-    /* 다른 것이 그려지기 전에 먼저 shadow map이 그려져야 한다 */
+    /* shadow map, 다른 것이 그려지기 전에 먼저 shadow map이 그려져야 한다 */
     // shadow map이 갖고 있는 depth buffer의 depth 값을 렌더링
     // 여기가 첫 번째 단계
-    auto lightView = glm::lookAt(m_light.position, m_light.position+m_light.direction, glm::vec3(0.0f, 1.0f, 0.0f));
+    auto lightView = glm::lookAt(m_light.position, m_light.position + m_light.direction, glm::vec3(0.0f, 1.0f, 0.0f));
     auto lightProjection = m_light.directional ?
-        glm::ortho(-10.f, 10.f, -10.0f, 10.0f, 1.0f, 30.0f) : 
-        glm::perspective(glm::radians((m_light.cutoff[0] + m_light.cutoff[1]) * 2.0f), 1.0f, 1.0f, 2.0f);
+        glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 30.0f) : 
+        glm::perspective(glm::radians((m_light.cutoff[0] + m_light.cutoff[1]) * 2.0f), 1.0f, 1.0f, 20.0f);
 
     // frame buffe binding
     m_shadowMap->Bind();
@@ -351,7 +354,7 @@ void Context::Render()
     // m_framebuffer->Bind();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
+    // glEnable(GL_DEPTH_TEST);
 
     m_cameraFront = 
         glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) * 
@@ -364,7 +367,7 @@ void Context::Render()
     // m_light.position = m_cameraPos;
     // m_light.direction = m_cameraFront;
 
-    auto projection = glm::perspective(glm::radians(45.0f), (float)m_width / (float)m_height, 0.1f, 100.0f);
+    auto projection = glm::perspective(glm::radians(45.0f), (float)m_width / (float)m_height, 0.1f, 150.0f);
     auto view = glm::lookAt(m_cameraPos, m_cameraPos+m_cameraFront, m_cameraUp);
 
     // skybox 그리기
