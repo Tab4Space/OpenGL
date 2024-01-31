@@ -102,6 +102,10 @@ private:
     TextureUPtr m_brickNormalTexture;
     ProgramUPtr m_normalProgram;
 
+    // deffered shading
+    FramebufferUPtr m_deferGeoFramebuffer;
+    ProgramUPtr m_deferGeoProgram;
+
     int m_width { WINDOW_WIDTH };
     int m_height { WINDOW_HEIGHT };
 };

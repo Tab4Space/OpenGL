@@ -58,6 +58,13 @@ void Context::Reshape(int width, int height)
 
     // 화면과 동인한 크기의 frame buffer를 생성 > 이후에 buffer에 scene을 렌더링할 것
     m_framebuffer = Framebuffer::Create({Texture::Create(width, height, GL_RGBA)});
+
+    // deferred shading을 위한 framebuffer 준비, 3장의 texture를 넣는다
+    m_deferGeoFramebuffer = Framebuffer::Create({
+        Texture::Create(width, height, GL_RGBA16F, GL_FLOAT),           // position
+        Texture::Create(width, height, GL_RGBA16F, GL_FLOAT),           // normal
+        Texture::Create(width, height, GL_RGBA, GL_UNSIGNED_BYTE),      // albedo-spec
+    });
 }
 
 void Context::MouseMove(double x, double y)
@@ -284,6 +291,10 @@ bool Context::Init()
     m_normalProgram = Program::Create("./shader/normal.vs", "./shader/normal.fs");
     /* normal map end */
 
+    /* deferred shading */
+    m_deferGeoProgram = Program::Create("./shader/defer_geo.vs", "./shader/defer_geo.fs");
+    /* deferred shading end */
+
     return true;
 }
 
@@ -336,6 +347,35 @@ void Context::Render()
     }
     ImGui::End();
 
+    if (ImGui::Begin("G-Buffers")) 
+    {
+        const char* bufferNames[] = {"position", "normal", "albedo/specular",};
+        static int bufferSelect = 0;
+        
+        ImGui::Combo("buffer", &bufferSelect, bufferNames, 3);
+        
+        float width = ImGui::GetContentRegionAvail().x;
+        float height = width * ((float)m_height / (float)m_width);
+        auto selectedAttachment = m_deferGeoFramebuffer->GetColorAttachment(bufferSelect);
+        ImGui::Image((ImTextureID)selectedAttachment->Get(),
+        ImVec2(width, height), ImVec2(0, 1), ImVec2(1, 0));
+    }
+    ImGui::End();
+
+    m_cameraFront = 
+        glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) * 
+        glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) * 
+        // 동차좌표계를 쓰지만, 마지막에 1을 넣으면 점/0을 넣으면 벡터라는 의미이다. 방향 벡터임을 의미
+        // 0을 넣으면 생기는 효과 > 평행이동이 안 된다
+        glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+
+    // 핸드 라이트 효과
+    // m_light.position = m_cameraPos;
+    // m_light.direction = m_cameraFront;
+
+    auto projection = glm::perspective(glm::radians(45.0f), (float)m_width / (float)m_height, 0.1f, 150.0f);
+    auto view = glm::lookAt(m_cameraPos, m_cameraPos+m_cameraFront, m_cameraUp);
+
     /* shadow map, 다른 것이 그려지기 전에 먼저 shadow map이 그려져야 한다 */
     // shadow map이 갖고 있는 depth buffer의 depth 값을 렌더링
     // 여기가 첫 번째 단계
@@ -353,30 +393,25 @@ void Context::Render()
     m_simpleProgram->SetUniform("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
     DrawScene(lightView, lightProjection, m_simpleProgram.get());
 
+    // deffered shading first pass rendering
+    m_deferGeoFramebuffer->Bind();
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, m_width, m_height);
+    m_deferGeoProgram->Use();
+    DrawScene(view, projection, m_deferGeoProgram.get());
+
     // 원상복구
     Framebuffer::BindToDefault();
     glViewport(0, 0, m_width, m_height);
+    glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
     /* shadow map end */
 
     // 아래에 나오는 그림을 그리는 코드들이 우리가 만든 프레임 버퍼에 그림을 그린다
     // m_framebuffer->Bind();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    // glEnable(GL_DEPTH_TEST);
-
-    m_cameraFront = 
-        glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) * 
-        glm::rotate(glm::mat4(1.0f), glm::radians(m_cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f)) * 
-        // 동차좌표계를 쓰지만, 마지막에 1을 넣으면 점/0을 넣으면 벡터라는 의미이다. 방향 벡터임을 의미
-        // 0을 넣으면 생기는 효과 > 평행이동이 안 된다
-        glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
-
-    // 핸드 라이트 효과
-    // m_light.position = m_cameraPos;
-    // m_light.direction = m_cameraFront;
-
-    auto projection = glm::perspective(glm::radians(45.0f), (float)m_width / (float)m_height, 0.1f, 150.0f);
-    auto view = glm::lookAt(m_cameraPos, m_cameraPos+m_cameraFront, m_cameraUp);
+    glEnable(GL_DEPTH_TEST);
 
     // skybox 그리기
     auto skyboxModelTransform = glm::translate(glm::mat4(1.0), m_cameraPos) * glm::scale(glm::mat4(1.0), glm::vec3(50.0f));

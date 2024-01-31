@@ -6,7 +6,7 @@ layout (location = 2) out vec4 gAlbedoSpec;
 
 in vec3 position;
 in vec3 normal;
-in vec3 texCoord;
+in vec2 texCoord;
 
 struct Material
 {
@@ -20,5 +20,5 @@ void main()
     gPosition = vec4(position, 1.0);
     gNormal = vec4(normalize(normal), 1.0);
     gAlbedoSpec.rgb = texture(material.diffuse, texCoord).rgb;      // diffuse color 텍스처를 가져와서 color를 채움
-    gAlbedoSpec.a = texture(material.specular, texture).r;          // alpha 채널에는 specular 값이 들어간다
+    gAlbedoSpec.a = texture(material.specular, texCoord).r;          // alpha 채널에는 specular 값이 들어간다
 }
