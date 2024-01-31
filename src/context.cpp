@@ -57,7 +57,7 @@ void Context::Reshape(int width, int height)
     glViewport(0, 0, m_width, m_height);
 
     // 화면과 동인한 크기의 frame buffer를 생성 > 이후에 buffer에 scene을 렌더링할 것
-    m_framebuffer = Framebuffer::Create(Texture::Create(width, height, GL_RGBA));
+    m_framebuffer = Framebuffer::Create({Texture::Create(width, height, GL_RGBA)});
 }
 
 void Context::MouseMove(double x, double y)
