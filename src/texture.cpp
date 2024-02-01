@@ -98,6 +98,14 @@ void Texture::SetTextureFormat(int width, int height, uint32_t format, uint32_t 
     {   
         imageFormat = GL_RGB;
     }
+    else if (m_format == GL_RG || m_format == GL_RG16F || m_format == GL_RG32F) 
+    {
+        imageFormat = GL_RG;
+    }
+    else if (m_format == GL_RED || m_format == GL_R || m_format == GL_R16F || m_format == GL_R32F) 
+    {
+        imageFormat = GL_RED;
+    }
 
     // nullptr을 넣으면 텍스처를 위한 메모리는 할당은 하되, copy를 하지는 않는다
     // 첫 번째 format 인자: internal format, 두 번째 format 인자: image format
