@@ -118,6 +118,7 @@ private:
     FramebufferUPtr m_ssaoFramebuffer;
     ProgramUPtr m_ssaoProgram;
     ModelUPtr m_model;                  // 가방 모델, for test rendering
+    TextureUPtr m_ssaoNoiseTexture;
 
     int m_width { WINDOW_WIDTH };
     int m_height { WINDOW_HEIGHT };

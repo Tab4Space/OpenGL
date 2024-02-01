@@ -6,8 +6,10 @@ in vec2 texCoord;
 // 간단한 구현을 위해 albedo는 생략
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
+uniform sampler2D texNoise;
 
 uniform mat4 view;
+uniform vec2 noiseScale;        // noise 텍스처를 반복해서 붙일것이기 때문에 scale factor 사용
 
 void main() 
 {
@@ -19,6 +21,15 @@ void main()
         discard;
     }
     
-    // world -> view로 제대로 변환되는지 디버깅을 위한 코드
-    fragColor = (view * vec4(worldPos.xyz, 1.0)).x * 0.1 + 0.5;
+    vec3 fragPos = (view * vec4(worldPos.xyz, 1.0)).xyz;                        // view space로 전환된 픽셀의 position
+    vec3 normal = (view * vec4(texture(gNormal, texCoord).xyz, 0.0)).xyz;       // view space로 전환된 normal
+    vec3 randomVec = texture(texNoise, texCoord * noiseScale).xyz;              // noise 텍스처로부터 얻어온 random vector
+ 
+    // normal 방향과 수직하게 만들어주는 과정(Gram-Schmidt process)
+    // 임의의 두 벡터로 orthogonal 하게 만든다
+    vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
+    vec3 binormal = cross(normal, tangent);
+    mat3 TBN = mat3(tangent, binormal, normal);
+
+    fragColor = tangent.x;
 }
