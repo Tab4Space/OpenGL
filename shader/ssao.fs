@@ -9,7 +9,13 @@ uniform sampler2D gNormal;
 uniform sampler2D texNoise;
 
 uniform mat4 view;
+uniform mat4 projection;
 uniform vec2 noiseScale;        // noise 텍스처를 반복해서 붙일것이기 때문에 scale factor 사용
+uniform float radius;           // 차폐를 어느정도 범위의 sample을 갖고와서 처리할지
+
+const int KERNEL_SIZE = 64;         // 64개의 샘플 사용
+const float BIAS = 0.025;           // depth 값 비교에 사용
+uniform vec3 samples[KERNEL_SIZE];
 
 void main() 
 {
@@ -31,5 +37,20 @@ void main()
     vec3 binormal = cross(normal, tangent);
     mat3 TBN = mat3(tangent, binormal, normal);
 
-    fragColor = tangent.x;
+    // occlusion 계산
+    float occlusion = 0.0;
+    for (int i = 0; i < KERNEL_SIZE; i++) 
+    {
+        vec3 sample = fragPos + TBN * samples[i] * radius;
+        vec4 screenSample = projection * vec4(sample, 1.0);
+        screenSample.xyz /= screenSample.w;
+        screenSample.xyz = screenSample.xyz * 0.5 + 0.5;
+ 
+        float sampleDepth = (view * texture(gPosition, screenSample.xy)).z;
+        // 반구보다 바깥쪽에 있는 샘플은 참여를 못하도록 막는다
+        float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));
+        occlusion += (sampleDepth >= sample.z + BIAS ? 1.0 : 0.0) * rangeCheck;
+    }
+
+    fragColor = 1.0 - occlusion / KERNEL_SIZE;
 }
