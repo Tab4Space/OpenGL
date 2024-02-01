@@ -65,6 +65,9 @@ void Context::Reshape(int width, int height)
         Texture::Create(width, height, GL_RGBA16F, GL_FLOAT),           // normal
         Texture::Create(width, height, GL_RGBA, GL_UNSIGNED_BYTE),      // albedo-spec
     });
+
+    // ssao을 위한 framebuffer, 단일 채널 저장을 위해 포맷은 GL_RED
+    m_ssaoFramebuffer = Framebuffer::Create({Texture::Create(width, height, GL_RED),});
 }
 
 void Context::MouseMove(double x, double y)
@@ -167,6 +170,17 @@ void Context::DrawScene(const glm::mat4& view, const glm::mat4& projection, cons
     m_box2Material->SetToProgram(program);
     m_box->Draw(program);
     /* box 3*/
+
+    /* backpack */
+    modelTransform =
+        glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.55f, 0.0f)) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+        glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+    transform = projection * view * modelTransform;
+    program->SetUniform("transform", transform);
+    program->SetUniform("modelTransform", modelTransform);
+    m_model->Draw(program);
+    /* backpack */
 }
 
 bool Context::Init()
@@ -304,6 +318,11 @@ bool Context::Init()
     }
     /* deferred shading end */
 
+    /* ssao shader and backpack model */
+    m_ssaoProgram = Program::Create("./shader/ssao.vs", "./shader/ssao.fs");
+    m_model = Model::Load("./model/backpack.obj");
+    /* ssao shader and backpack model */
+
     return true;
 }
 
@@ -366,8 +385,15 @@ void Context::Render()
         float width = ImGui::GetContentRegionAvail().x;
         float height = width * ((float)m_height / (float)m_width);
         auto selectedAttachment = m_deferGeoFramebuffer->GetColorAttachment(bufferSelect);
-        ImGui::Image((ImTextureID)selectedAttachment->Get(),
-        ImVec2(width, height), ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::Image((ImTextureID)selectedAttachment->Get(), ImVec2(width, height), ImVec2(0, 1), ImVec2(1, 0));
+    }
+    ImGui::End();
+
+    if (ImGui::Begin("SSAO")) 
+    {
+        float width = ImGui::GetContentRegionAvail().x;
+        float height = width * ((float)m_height / (float)m_width);
+        ImGui::Image((ImTextureID)m_ssaoFramebuffer->GetColorAttachment()->Get(), ImVec2(width, height), ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
 
@@ -409,6 +435,23 @@ void Context::Render()
     glViewport(0, 0, m_width, m_height);
     m_deferGeoProgram->Use();
     DrawScene(view, projection, m_deferGeoProgram.get());
+
+    // ssao
+    m_ssaoFramebuffer->Bind();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, m_width, m_height);
+    m_ssaoProgram->Use();
+    glActiveTexture(GL_TEXTURE0);
+    m_deferGeoFramebuffer->GetColorAttachment(0)->Bind();       // position
+    glActiveTexture(GL_TEXTURE1);
+    m_deferGeoFramebuffer->GetColorAttachment(1)->Bind();       // normal
+    glActiveTexture(GL_TEXTURE0);
+
+    m_ssaoProgram->SetUniform("gPosition", 0);
+    m_ssaoProgram->SetUniform("gNormal", 1);
+    m_ssaoProgram->SetUniform("transform", glm::scale(glm::mat4(1.0f), glm::vec3(2.0f)));
+    m_ssaoProgram->SetUniform("view", view);
+    m_plane->Draw(m_ssaoProgram.get());
 
     // 원상복구
     Framebuffer::BindToDefault();

@@ -114,6 +114,11 @@ private:
     };
     std::vector<DeferLight> m_deferLights;
 
+    // ssao
+    FramebufferUPtr m_ssaoFramebuffer;
+    ProgramUPtr m_ssaoProgram;
+    ModelUPtr m_model;                  // 가방 모델, for test rendering
+
     int m_width { WINDOW_WIDTH };
     int m_height { WINDOW_HEIGHT };
 };
