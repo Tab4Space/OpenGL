@@ -29,7 +29,7 @@ private:
     Context() {}
     bool Init();
     ProgramUPtr m_program;
-    ProgramUPtr m_simpleProgram;            // light 위치/박스를 위한 program
+    ProgramUPtr m_simpleProgram;            // light 위치/박스를 위한 program, 단색으로 그림을 그리는 shader program
     ProgramUPtr m_textureProgram;           // texture program
     ProgramUPtr m_postProgram;              // post processing program
 
@@ -105,6 +105,14 @@ private:
     // deffered shading
     FramebufferUPtr m_deferGeoFramebuffer;
     ProgramUPtr m_deferGeoProgram;
+    ProgramUPtr m_deferLightProgram;
+
+    struct DeferLight 
+    {
+        glm::vec3 position;
+        glm::vec3 color;
+    };
+    std::vector<DeferLight> m_deferLights;
 
     int m_width { WINDOW_WIDTH };
     int m_height { WINDOW_HEIGHT };
