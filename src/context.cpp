@@ -317,7 +317,11 @@ bool Context::Init()
     {
         // 랜덤한 position, color 값 생성
         m_deferLights[i].position = glm::vec3(RandomRange(-10.0f, 10.0f), RandomRange(1.0f, 4.0f), RandomRange(-10.0f, 10.0f));
-        m_deferLights[i].color = glm::vec3(RandomRange(0.05f, 0.3f), RandomRange(0.05f, 0.3f), RandomRange(0.05f, 0.3f));
+        m_deferLights[i].color = glm::vec3(
+            RandomRange(0.0f, i < 3 ? 1.0f : 0.0f),
+            RandomRange(0.0f, i < 3 ? 1.0f : 0.0f),
+            RandomRange(0.0f, i < 3 ? 1.0f : 0.0f)
+        );
     }
     /* deferred shading end */
 
@@ -402,6 +406,7 @@ void Context::Render()
             ImGui::ColorEdit3("l.specular", glm::value_ptr(m_light.specular));
             ImGui::Checkbox("flash light", &m_flashLightMode);
             ImGui::Checkbox("l.blinn", &m_blinn);
+            ImGui::Checkbox("use ssao", &m_useSsao);
             ImGui::DragFloat("ssao radius", &m_ssaoRadius, 0.01f, 0.0f, 5.0f);
         }
 
@@ -545,11 +550,15 @@ void Context::Render()
     m_deferGeoFramebuffer->GetColorAttachment(1)->Bind();       // normal
     glActiveTexture(GL_TEXTURE2);
     m_deferGeoFramebuffer->GetColorAttachment(2)->Bind();       // albedo-spec
+    glActiveTexture(GL_TEXTURE3);
+    m_ssaoBlurFramebuffer->GetColorAttachment()->Bind();        // ssao
     glActiveTexture(GL_TEXTURE0);
 
     m_deferLightProgram->SetUniform("gPosition", 0);
     m_deferLightProgram->SetUniform("gNormal", 1);
     m_deferLightProgram->SetUniform("gAlbedoSpec", 2);
+    m_deferLightProgram->SetUniform("ssao", 3);
+    m_deferLightProgram->SetUniform("useSsao", m_useSsao ? 1 : 0);
 
     // 여려개의 lgith를 사용하기 때문에 light가 배열이였는데, 이를 uniform에 넣기 위해 string format을 맞춰준다
     // fmt는 SPDLOG에 들어있는 라이브러리인데 편하게 문자열 포맷팅 가능

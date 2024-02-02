@@ -7,6 +7,9 @@ in vec2 texCoord;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
+// ssao map, 사용유무
+uniform sampler2D ssao;
+uniform int useSsao;
 
 // point 라이트를 사용할건데, attenuation은 생략
 struct Light {
@@ -27,7 +30,8 @@ void main()
     float specular = texture(gAlbedoSpec, texCoord).a;
     
     // then calculate lighting as usual
-    vec3 lighting = albedo * 0.1;                   // ambient color를 0.1을 준것
+    vec3 ambient = useSsao == 1 ? texture(ssao, texCoord).r * 0.4 * albedo : albedo * 0.4;      // 0.4는 하드코딩 값
+    vec3 lighting = ambient;
     vec3 viewDir = normalize(viewPos - fragPos);
 
     for(int i = 0; i < NR_LIGHTS; ++i) 

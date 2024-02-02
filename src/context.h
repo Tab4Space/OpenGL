@@ -125,7 +125,7 @@ private:
     // blur for ssao
     ProgramUPtr m_blurProgram;
     FramebufferUPtr m_ssaoBlurFramebuffer;
-
+    bool m_useSsao { true };
 
     int m_width { WINDOW_WIDTH };
     int m_height { WINDOW_HEIGHT };
