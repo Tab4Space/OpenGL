@@ -33,10 +33,11 @@ private:
 
     MeshUPtr m_box;
     MeshUPtr m_plane;
+    MeshUPtr m_sphere;
 
     // screen size
-    int m_width {640};
-    int m_height {480};
+    int m_width {WINDOW_WIDTH};
+    int m_height {WINDOW_HEIGHT};
 
     // camera parameter
     bool m_cameraControl { false };

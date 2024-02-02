@@ -33,6 +33,7 @@ bool Buffer::Init(uint32_t bufferType, uint32_t usage, const void* data, size_t 
 
     glGenBuffers(1, &m_buffer);
     Bind();
-    glBufferData(m_bufferType, m_stride*m_count, data, usage);
+    glBufferData(m_bufferType, m_stride * m_count, data, m_usage);
+    
     return true;
 }
