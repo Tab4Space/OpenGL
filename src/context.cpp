@@ -67,7 +67,10 @@ void Context::Reshape(int width, int height)
     });
 
     // ssao을 위한 framebuffer, 단일 채널 저장을 위해 포맷은 GL_RED
-    m_ssaoFramebuffer = Framebuffer::Create({Texture::Create(width, height, GL_RED),});
+    m_ssaoFramebuffer = Framebuffer::Create({Texture::Create(width, height, GL_RED), });
+
+    // ssao을 위한 blur framebuffer
+    m_ssaoBlurFramebuffer = Framebuffer::Create({Texture::Create(width, height, GL_RED), });
 }
 
 void Context::MouseMove(double x, double y)
@@ -320,6 +323,7 @@ bool Context::Init()
 
     /* ssao shader and backpack model */
     m_ssaoProgram = Program::Create("./shader/ssao.vs", "./shader/ssao.fs");
+    m_blurProgram = Program::Create("./shader/blur_5x5.vs", "./shader/blur_5x5.fs");
     m_model = Model::Load("./model/backpack.obj");
     /* ssao shader and backpack model */
 
@@ -427,9 +431,15 @@ void Context::Render()
 
     if (ImGui::Begin("SSAO")) 
     {
+        const char* bufferNames[] = { "original", "blurred" };
+        static int bufferSelect = 0;
+        ImGui::Combo("buffer", &bufferSelect, bufferNames, 2);
+
         float width = ImGui::GetContentRegionAvail().x;
         float height = width * ((float)m_height / (float)m_width);
-        ImGui::Image((ImTextureID)m_ssaoFramebuffer->GetColorAttachment()->Get(), ImVec2(width, height), ImVec2(0, 1), ImVec2(1, 0));
+        auto selectedAttachment = bufferSelect == 0 ? m_ssaoFramebuffer->GetColorAttachment() : m_ssaoBlurFramebuffer->GetColorAttachment();
+
+        ImGui::Image((ImTextureID)selectedAttachment->Get(), ImVec2(width, height), ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
 
@@ -504,6 +514,15 @@ void Context::Render()
     m_ssaoProgram->SetUniform("view", view);
     m_ssaoProgram->SetUniform("projection", projection);
     m_plane->Draw(m_ssaoProgram.get());
+
+    m_ssaoBlurFramebuffer->Bind();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, m_width, m_height);
+    m_blurProgram->Use();
+    m_ssaoFramebuffer->GetColorAttachment(0)->Bind();
+    m_blurProgram->SetUniform("tex", 0);                // 0번 텍스처를 바인딩 했는데, 그것이 ssao framebuffer의 result이다
+    m_blurProgram->SetUniform("transform", glm::scale(glm::mat4(1.0f), glm::vec3(2.0f)));
+    m_plane->Draw(m_blurProgram.get());
 
     // 원상복구
     Framebuffer::BindToDefault();
