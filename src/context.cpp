@@ -193,10 +193,35 @@ bool Context::Init()
         m_box->Draw(m_sphericalMapProgram.get());
     }
 
+    // diffuse irradiance
+    m_diffuseIrradianceProgram = Program::Create("./shader/skybox_hdr.vs", "./shader/diffuse_irradiance.fs");
+    m_diffuseIrradianceMap = CubeTexture::Create(64, 64, GL_RGB16F, GL_FLOAT);      // map 자체가 해상도가 높지 않기 때문에 64x64로 충분
+    cubeFramebuffer = CubeFramebuffer::Create(m_diffuseIrradianceMap);              // irradiance map에 렌더링하기 위한 cube framebuffer
+    
+    glDepthFunc(GL_LEQUAL);
+    m_diffuseIrradianceProgram->Use();
+    m_diffuseIrradianceProgram->SetUniform("projection", projection);
+    m_diffuseIrradianceProgram->SetUniform("cubeMap", 0);
+    m_hdrCubeMap->Bind();
+    glViewport(0, 0, 64, 64);
+    
+    // 각각의 면마다의 convolution 결과가 diffuse irradiance 맵에 저장된다
+    for (int i = 0; i < (int)views.size(); i++) 
+    {
+        cubeFramebuffer->Bind(i);
+        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        m_diffuseIrradianceProgram->SetUniform("view", views[i]);
+        m_box->Draw(m_diffuseIrradianceProgram.get());
+    }
+    glDepthFunc(GL_LESS);
+
     Framebuffer::BindToDefault();
     glViewport(0, 0, m_width, m_height);
 
     m_skyboxProgram = Program::Create("./shader/skybox_hdr.vs", "./shader/skybox_hdr.fs");
+
+
 
     return true;
 }
@@ -286,7 +311,8 @@ void Context::Render()
     m_skyboxProgram->SetUniform("projection", projection);
     m_skyboxProgram->SetUniform("view", view);
     m_skyboxProgram->SetUniform("cubeMap", 0);
-    m_hdrCubeMap->Bind();
+    // m_hdrCubeMap->Bind();
+    m_diffuseIrradianceMap->Bind();             // diffuse irradiance map test
     m_box->Draw(m_skyboxProgram.get());
     glDepthFunc(GL_LESS);
 }
