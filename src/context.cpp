@@ -164,6 +164,38 @@ bool Context::Init()
     m_hdrMap = Texture::CreateFromImage(Image::Load("./image/Alexs_Apt_2k.hdr").get());
     m_sphericalMapProgram = Program::Create("./shader/spherical_map.vs", "./shader/spherical_map.fs");
 
+    // HDR cube map
+    m_hdrCubeMap = CubeTexture::Create(512, 512, GL_RGB16F, GL_FLOAT);
+    auto cubeFramebuffer = CubeFramebuffer::Create(m_hdrCubeMap);                   // cube map을 바인딩할 수 있는 cube frame buffer
+    
+    // projection matrix 1개, view maxtrix 6개(상하좌우앞뒤) 생성
+    auto projection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+    std::vector<glm::mat4> views = {
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+    };
+
+    m_sphericalMapProgram->Use();
+    m_sphericalMapProgram->SetUniform("tex", 0);        // 사용할 텍스처는 m_hdrMap
+    m_hdrMap->Bind();
+    glViewport(0, 0, 512, 512);
+    
+    // 상하좌우앞뒤를 한 면씩 렌더링
+    for (int i = 0; i < (int)views.size(); i++) 
+    {
+        cubeFramebuffer->Bind(i);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        m_sphericalMapProgram->SetUniform("transform", projection * views[i]);
+        m_box->Draw(m_sphericalMapProgram.get());
+    }
+
+    Framebuffer::BindToDefault();
+    glViewport(0, 0, m_width, m_height);
+
     return true;
 }
 
