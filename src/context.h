@@ -39,6 +39,7 @@ private:
     TextureUPtr m_hdrMap;
     ProgramUPtr m_sphericalMapProgram;
     CubeTexturePtr m_hdrCubeMap;
+    ProgramUPtr m_skyboxProgram;
 
     struct Light 
     {

@@ -196,6 +196,8 @@ bool Context::Init()
     Framebuffer::BindToDefault();
     glViewport(0, 0, m_width, m_height);
 
+    m_skyboxProgram = Program::Create("./shader/skybox_hdr.vs", "./shader/skybox_hdr.fs");
+
     return true;
 }
 
@@ -278,4 +280,13 @@ void Context::Render()
     m_sphericalMapProgram->SetUniform("tex", 0);
     m_hdrMap->Bind();
     m_box->Draw(m_sphericalMapProgram.get());
+
+    glDepthFunc(GL_LEQUAL);
+    m_skyboxProgram->Use();
+    m_skyboxProgram->SetUniform("projection", projection);
+    m_skyboxProgram->SetUniform("view", view);
+    m_skyboxProgram->SetUniform("cubeMap", 0);
+    m_hdrCubeMap->Bind();
+    m_box->Draw(m_skyboxProgram.get());
+    glDepthFunc(GL_LESS);
 }
