@@ -25,6 +25,9 @@ struct Material
 };
 uniform Material material;
 
+uniform samplerCube irradianceMap;
+uniform int useIrradiance;
+
 const float PI = 3.14159265359;
 
 float DistributionGGX(vec3 normal, vec3 halfDir, float roughness) 
@@ -71,6 +74,12 @@ vec3 FresnelSchlick(float cosTheta, vec3 F0)
     frenel equation의 approximation
     */
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec3 FresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) 
+{
+    // specular term을 알아낸다
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
 void main() 
@@ -125,6 +134,14 @@ void main()
     따라서 tone mapping 필요
     */
     vec3 ambient = vec3(0.03) * albedo * ao;
+    if (useIrradiance == 1) 
+    {
+        vec3 kS = FresnelSchlickRoughness(dotNV, F0, roughness);
+        vec3 kD = 1.0 - kS;
+        vec3 irradiance = texture(irradianceMap, fragNormal).rgb;       // irradianceMap으로부터 color값을 가져온다
+        vec3 diffuse = irradiance * albedo;
+        ambient = (kD * diffuse) * ao;
+    }
     vec3 color = ambient + outRadiance;
 
     // Reinhard tone mapping + gamma correction

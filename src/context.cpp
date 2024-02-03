@@ -258,6 +258,7 @@ void Context::Render()
             ImGui::SliderFloat("mat.metallic", &m_material.metallic, 0.0f, 1.0f);
             ImGui::SliderFloat("mat.ao", &m_material.ao, 0.0f, 1.0f);
         }
+        ImGui::Checkbox("use irradiance", &m_useDiffuseIrradiance);
     }
     ImGui::End();
 
@@ -275,6 +276,9 @@ void Context::Render()
     m_pbrProgram->SetUniform("viewPos", m_cameraPos);
     m_pbrProgram->SetUniform("material.albedo", m_material.albedo);
     m_pbrProgram->SetUniform("material.ao", m_material.ao);
+    m_pbrProgram->SetUniform("useIrradiance", m_useDiffuseIrradiance ? 1 : 0);
+    m_pbrProgram->SetUniform("irradianceMap", 0);
+    m_diffuseIrradianceMap->Bind();
 
     // for texture material
     // m_pbrProgram->SetUniform("material.albedo", 0);
@@ -300,19 +304,20 @@ void Context::Render()
     }
     DrawScene(view, projection, m_pbrProgram.get());
 
-    m_sphericalMapProgram->Use();
-    m_sphericalMapProgram->SetUniform("transform", projection * view * glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 2.0f)));
-    m_sphericalMapProgram->SetUniform("tex", 0);
-    m_hdrMap->Bind();
-    m_box->Draw(m_sphericalMapProgram.get());
+    // equirectangle box
+    // m_sphericalMapProgram->Use();
+    // m_sphericalMapProgram->SetUniform("transform", projection * view * glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 2.0f)));
+    // m_sphericalMapProgram->SetUniform("tex", 0);
+    // m_hdrMap->Bind();
+    // m_box->Draw(m_sphericalMapProgram.get());
 
     glDepthFunc(GL_LEQUAL);
     m_skyboxProgram->Use();
     m_skyboxProgram->SetUniform("projection", projection);
     m_skyboxProgram->SetUniform("view", view);
     m_skyboxProgram->SetUniform("cubeMap", 0);
-    // m_hdrCubeMap->Bind();
-    m_diffuseIrradianceMap->Bind();             // diffuse irradiance map test
+    m_hdrCubeMap->Bind();
+    // m_diffuseIrradianceMap->Bind();             // diffuse irradiance map test
     m_box->Draw(m_skyboxProgram.get());
     glDepthFunc(GL_LESS);
 }
