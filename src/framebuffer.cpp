@@ -121,10 +121,10 @@ bool Framebuffer::InitWithColorAttachments(const std::vector<TexturePtr>& colorA
 }
 
 
-CubeFramebufferUPtr CubeFramebuffer::Create(const CubeTexturePtr colorAttachment) 
+CubeFramebufferUPtr CubeFramebuffer::Create(const CubeTexturePtr colorAttachment, uint32_t mipLevel) 
 {
     auto framebuffer = CubeFramebufferUPtr(new CubeFramebuffer());
-    if (!framebuffer->InitWithColorAttachment(colorAttachment))
+    if (!framebuffer->InitWithColorAttachment(colorAttachment, mipLevel))
     {
         return nullptr;
     }
@@ -148,19 +148,21 @@ void CubeFramebuffer::Bind(int cubeIndex) const
     // 큐브의 몇 번째 인덱스(positive X, negative X 등등) 
     // color attachment가 cube texture 하나로 되어있기 때문에 그것을 framebuffer 로 생성
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + cubeIndex, m_colorAttachment->Get(), 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + cubeIndex, m_colorAttachment->Get(), m_mipLevel);
 }
 
-bool CubeFramebuffer::InitWithColorAttachment(const CubeTexturePtr& colorAttachment) 
+bool CubeFramebuffer::InitWithColorAttachment(const CubeTexturePtr& colorAttachment, uint32_t mipLevel) 
 {
     m_colorAttachment = colorAttachment;
+    m_mipLevel = mipLevel;
+
     glGenFramebuffers(1, &m_framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, m_colorAttachment->Get(), 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, m_colorAttachment->Get(), m_mipLevel);
 
-    int width = m_colorAttachment->GetWidth();
-    int height = m_colorAttachment->GetHeight();
+    int width = m_colorAttachment->GetWidth() >> m_mipLevel;
+    int height = m_colorAttachment->GetHeight() >> m_mipLevel;
 
     glGenRenderbuffers(1, &m_depthStencilBuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, m_depthStencilBuffer);
