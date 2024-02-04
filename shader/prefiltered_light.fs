@@ -50,6 +50,18 @@ vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness)
     return normalize(sampleVec);
 }
 
+float DistributionGGX(vec3 normal, vec3 halfDir, float roughness) 
+{
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float dotNH = max(dot(normal, halfDir), 0.0);
+    float dotNH2 = dotNH * dotNH;
+ 
+    float num = a2;
+    float denom = (dotNH2 * (a2 - 1.0) + 1.0);
+    return a2 / (PI * denom * denom);
+}
+
 void main() 
 {
     // 간결하게 하기 위해 normal, reflect, view를 모두 normal로 통일
@@ -71,7 +83,17 @@ void main()
         // 적분
         if(NdotL > 0.0) 
         {
-            prefilteredColor += texture(cubeMap, L).rgb * NdotL;
+            float D = DistributionGGX(N, H, roughness);
+            float NdotH = max(dot(N, H), 0.0);
+            float HdotV = max(dot(H, V), 0.0);
+            float pdf = (D * NdotH / (4.0 * HdotV)) + 0.0001;
+            float resolution = 512.0; // resolution of source cubemap (per face)
+            float saTexel = 4.0 * PI / (6.0 * resolution * resolution);
+            float saSample = 1.0 / (float(SAMPLE_COUNT) * pdf + 0.0001);
+            float mipLevel = roughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTexel);
+ 
+            // mip level에 맞는 cubemap texture 샘플링
+            prefilteredColor += textureLod(cubeMap, L, mipLevel).rgb * NdotL;
             totalWeight += NdotL;
         }
     }
